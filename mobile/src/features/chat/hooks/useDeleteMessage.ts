@@ -7,9 +7,11 @@ type MessagesInfinite = {
   pageParams: unknown[];
 };
 
+type DeleteMessageContext = { previous: MessagesInfinite | undefined };
+
 export function useDeleteMessage(tripId: string) {
   const qc = useQueryClient();
-  return useMutation<void, Error, string>({
+  return useMutation<void, Error, string, DeleteMessageContext>({
     mutationFn: (messageId) =>
       apiClient.delete<void>(`/trips/${tripId}/messages/${messageId}`),
 

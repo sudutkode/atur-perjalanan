@@ -1561,6 +1561,8 @@ function EditVotingSheet({
                             label: formatDateRangeShort(range.start, range.end),
                             maps_link: '',
                             ref_links: [{ url: '', label: '' }],
+                            start_time: nowTime(),
+                            end_time: nowPlusOneHour(),
                           },
                         ]);
                         setEditShowDatePicker(false);

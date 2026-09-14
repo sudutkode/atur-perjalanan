@@ -15,9 +15,14 @@ type MessagesInfinite = {
   pageParams: unknown[];
 };
 
+type SendMessageContext = {
+  previous: MessagesInfinite | undefined;
+  optimisticId: string;
+};
+
 export function useSendMessage(tripId: string) {
   const qc = useQueryClient();
-  return useMutation<TripMessage, Error, SendMessagePayload>({
+  return useMutation<TripMessage, Error, SendMessagePayload, SendMessageContext>({
     mutationFn: (payload) =>
       apiClient.post<TripMessage>(`/trips/${tripId}/messages`, payload),
 

@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 16.4.0",
+    "version": "24.3.0",
     "appVersionSource": "remote"
   },
   "build": {
@@ -40,6 +40,11 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }

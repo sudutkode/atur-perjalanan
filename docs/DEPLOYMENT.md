@@ -266,6 +266,24 @@ Di **Google Cloud Console → Credentials → OAuth client** (yang dipakai `GOOG
 - `eas.json` production profile sudah ada (AAB + autoIncrement) ✅
 - Login EAS: `npx eas-cli login` (sekali)
 
+### Profil EAS yang tersedia
+
+| Profil | Hasil Android | Kegunaan |
+| --- | --- | --- |
+| `development` | APK + development client | Debug di perangkat fisik dengan Metro (`pnpm start --dev-client`) |
+| `preview` | APK internal | QA / dibagikan ke tester tanpa Metro |
+| `production` | AAB | Upload ke Google Play; versionCode naik otomatis di EAS |
+
+Jalankan dari `mobile/`; tiap command berikut meregenerasi aset brand sebelum build:
+
+```bash
+pnpm build:development:android
+pnpm build:preview:android
+pnpm build:production:android
+```
+
+> Akun EAS harus memiliki akses ke organization `sudutkode`, pemilik project ID di `app.json`. Cek dengan `pnpm exec eas whoami`; gunakan `pnpm exec eas login` jika perlu berganti akun.
+
 ## 3.2 Build AAB Production
 
 ```bash
@@ -273,7 +291,7 @@ cd mobile
 cp .env.production .env   # pastikan API URL → Vercel production
 
 # Build AAB (EAS cloud)
-npx eas-cli build --platform android --profile production
+pnpm build:production:android
 ```
 
 - EAS akan **generate keystore** (pertama kali) — **simpan baik-baik**.
@@ -295,9 +313,11 @@ Di **Google Cloud Console → Credentials → Android client** (`463752801012-d0
 ## 3.4 Submit ke Play Console
 
 ```bash
-npx eas-cli submit --platform android --profile production
+pnpm submit:production:android
 # → upload AAB ke Play Console (Internal Testing track)
 ```
+
+Profile submit mengirim AAB ke track **Internal testing** sebagai draft. Sebelum submit pertama, buat Google service account, beri peran rilis aplikasi di Play Console, lalu hubungkan credential itu saat prompt EAS pertama kali muncul. Jangan commit file JSON service-account ke repository.
 
 ## 3.5 Set Up App di Play Console (manual)
 

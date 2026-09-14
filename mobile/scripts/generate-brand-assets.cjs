@@ -9,10 +9,10 @@
  *
  * Icon  : matches the simple CompassIcon used on the sign-in screen
  *         (white circle + white diamond on a coral gradient).
- * Splash: full-bleed port of mobile/src/components/SplashScreen.tsx
- *         (coral gradient + decorative rings + logo well + detailed compass
- *         + title/tagline). Used with resizeMode "cover" so the native
- *         splash looks like the in-app splash screen.
+ * Splash: native-compatible logo well from Figma Make's Screen1Splash.
+ *         The full Figma composition is rendered by AppSplash.tsx after the
+ *         native launch screen, where Android's system-splash limitations no
+ *         longer apply.
  */
 const fs = require('fs');
 const path = require('path');
@@ -43,21 +43,28 @@ function iconSvg(size) {
   // To make the ring read as a balanced mark on the icon, keep the mark
   // around 0.5x the canvas (ring diameter ≈ 0.83 × 0.5 ≈ 42% of the icon).
   const markSize = Math.round(size * 0.5);
-  const r = Math.round(size * 0.22);
   const mark = compassMarkSvg(markSize);
   const stops = GRADIENT.map(
     (s) => `<stop offset="${s.offset * 100}%" stop-color="${s.color}"/>`,
   ).join('\n      ');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <defs>
-    <clipPath id="round"><rect width="${size}" height="${size}" rx="${r}"/></clipPath>
     <linearGradient id="bg" x1="0.15" y1="0" x2="0.85" y2="1">
       ${stops}
     </linearGradient>
   </defs>
-  <g clip-path="url(#round)">
-    <rect width="${size}" height="${size}" fill="url(#bg)"/>
+  <rect width="${size}" height="${size}" fill="url(#bg)"/>
+  <g transform="translate(${(size - markSize) / 2} ${(size - markSize) / 2})">
+    ${mark}
   </g>
+</svg>`;
+}
+
+/** Android masks adaptive icons itself, so this foreground stays transparent. */
+function adaptiveIconSvg(size) {
+  const markSize = Math.round(size * 0.42);
+  const mark = compassMarkSvg(markSize);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <g transform="translate(${(size - markSize) / 2} ${(size - markSize) / 2})">
     ${mark}
   </g>
@@ -83,9 +90,15 @@ function faviconSvg(size) {
  * on both Android and iOS. No text/gradient in the PNG itself.
  */
 function splashSvg(size) {
-  const mark = compassMarkSvg(size);
+  const markSize = Math.round(size * 0.82);
+  const mark = compassMarkSvg(markSize);
+  const r = Math.round(size * 0.282);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  ${mark}
+  <rect width="${size}" height="${size}" rx="${r}" fill="white" fill-opacity="0.15"/>
+  <rect width="${size}" height="${size}" rx="${r}" fill="none" stroke="white" stroke-opacity="0.2" stroke-width="7"/>
+  <g transform="translate(${(size - markSize) / 2} ${(size - markSize) / 2})">
+    ${mark}
+  </g>
 </svg>`;
 }
 
@@ -94,7 +107,7 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const jobs = [
   { name: 'icon.png', svg: iconSvg(1024) },
-  { name: 'adaptive-icon.png', svg: iconSvg(1024) },
+  { name: 'adaptive-icon.png', svg: adaptiveIconSvg(1024) },
   { name: 'favicon.png', svg: faviconSvg(64) },
   { name: 'splash.png', svg: splashSvg(1024) },
 ];

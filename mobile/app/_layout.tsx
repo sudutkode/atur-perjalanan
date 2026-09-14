@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
   useFonts,
@@ -23,11 +24,15 @@ import { ToastProvider } from '../src/components/Toast';
 import { useNotificationsSubscription } from '../src/realtime/useNotificationsSubscription';
 import { usePushNotifications } from '../src/features/notifications/push/usePushNotifications';
 import { captureWebGoogleToken } from '../src/lib/webGoogleToken';
+import { AppSplash } from '../src/components/AppSplash';
 
 // Capture the Google web OAuth id_token from the URL hash at the earliest
 // possible moment — before index.tsx's client-side redirect to /(auth)/sign-in
 // rewrites the URL and drops the hash. See src/lib/webGoogleToken.ts.
 captureWebGoogleToken();
+
+// Keep the native launch screen visible until the React splash has mounted.
+void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const persister = createAsyncStoragePersister({ storage: AsyncStorage });
 
@@ -55,12 +60,18 @@ function RootGate({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      void SplashScreen.hideAsync();
+    }
+  }, []);
+
   // Subscribe to real-time notifications when authenticated
   useNotificationsSubscription(user?.id);
   // Register the device for push notifications (native only)
   usePushNotifications(user?.id);
 
-  if (!isHydrated || !onboardingChecked) return null;
+  if (!isHydrated || !onboardingChecked) return <AppSplash />;
 
   // Auth guard at the ROOT level — covers screens outside `(tabs)` (settings,
   // notifications, profile, trip) that the tabs layout guard can't reach.

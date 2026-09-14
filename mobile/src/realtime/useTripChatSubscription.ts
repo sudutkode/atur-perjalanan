@@ -21,7 +21,7 @@ function toTripMessageFromRow(row: any, qc: ReturnType<typeof useQueryClient>): 
   // Try to resolve sender from cached trip/members to avoid blank avatar.
   const tripDetail = qc.getQueryData(['trip', row.trip_id ?? row.tripId]) as any;
   const membersData = qc.getQueryData(['members', row.trip_id ?? row.tripId]) as any;
-  let sender: TripMessage['sender'] = null;
+  let sender: TripMessage['sender'] | null = null;
 
   const senderId = row.sender_id ?? row.senderId;
   if (tripDetail?.creator?.id === senderId) {
@@ -47,7 +47,7 @@ function toTripMessageFromRow(row: any, qc: ReturnType<typeof useQueryClient>): 
     media_url: row.media_url ?? row.mediaUrl ?? null,
     media_duration_seconds: durationToSeconds(row.media_duration ?? row.mediaDuration),
     reply_to: null, // hydrated on next refetch if needed
-    is_deleted: !!row.deleted_at ?? !!row.deletedAt,
+    is_deleted: Boolean(row.deleted_at ?? row.deletedAt),
     created_at: row.created_at ?? row.createdAt ?? new Date().toISOString(),
   };
 }
