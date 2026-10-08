@@ -122,7 +122,6 @@ export default function UsernameSetup() {
 
     if (!USERNAME_REGEX.test(value)) {
       setFieldState('invalid');
-      setErrorMessage('Huruf, angka, dan underscore (_) · min. 3 karakter');
       return;
     }
     setFieldState('checking');
@@ -224,13 +223,8 @@ export default function UsernameSetup() {
         </View>
 
         {fieldState === 'available' && <Text style={styles.availableText}>Username tersedia</Text>}
-        {errorMessage && fieldState !== 'available' && (
-          <Text style={[styles.errorText, fieldState === 'invalid' ? styles.hintText : undefined]}>
-            {errorMessage}
-          </Text>
-        )}
-        {fieldState === 'idle' && (
-          <Text style={styles.hintText}>Huruf, angka, dan underscore (_) · min. 3 karakter</Text>
+        {!!errorMessage && fieldState !== 'available' && (
+          <Text style={styles.errorText}>{errorMessage}</Text>
         )}
 
         {suggestions.length > 0 && (
@@ -336,13 +330,6 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans_600SemiBold',
     color: theme.colors.danger,
     marginTop: 8,
-  },
-  hintText: {
-    fontSize: 12,
-    fontFamily: 'PlusJakartaSans_400Regular',
-    color: theme.colors.mutedLight,
-    marginTop: 6,
-    lineHeight: 18,
   },
   suggestions: {
     marginTop: 24,

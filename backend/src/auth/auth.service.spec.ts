@@ -32,7 +32,10 @@ const mockUser = {
 
 describe('AuthService', () => {
   let service: AuthService;
-  let prisma: { user: { findFirst: jest.Mock; create: jest.Mock; update: jest.Mock; count: jest.Mock } };
+  let prisma: {
+    user: { findFirst: jest.Mock; create: jest.Mock; update: jest.Mock; count: jest.Mock };
+    tripInvitation: { updateMany: jest.Mock };
+  };
   let jwtService: { sign: jest.Mock };
 
   beforeEach(async () => {
@@ -42,6 +45,9 @@ describe('AuthService', () => {
         create: jest.fn(),
         update: jest.fn(),
         count: jest.fn().mockResolvedValue(0),
+      },
+      tripInvitation: {
+        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
     };
 

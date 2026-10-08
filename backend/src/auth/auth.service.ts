@@ -93,6 +93,20 @@ export class AuthService {
           });
         })();
 
+    // Claim pending email invitations addressed to this user that were created
+    // before their account existed (invitedUserId was null at invite time).
+    // Without this, an email invite never surfaces in the Undangan tab.
+    if (user.email) {
+      await this.prisma.tripInvitation.updateMany({
+        where: {
+          invitedEmail: user.email.toLowerCase(),
+          invitedUserId: null,
+          status: 'pending',
+        },
+        data: { invitedUserId: user.id },
+      });
+    }
+
     // Check if user still has placeholder username (starts with "user_" and no real username set)
     const needsRegistration = isNewUser || /^user_\d+$/.test(user.username);
 

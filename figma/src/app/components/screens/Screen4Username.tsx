@@ -80,10 +80,6 @@ export function Screen4Username() {
         <p style={{ fontSize: 12, color: C.teal, fontWeight: 600, margin: '8px 0 0' }}>
           Username tersedia
         </p>
-        <p style={{ fontSize: 12, color: C.mutedLight, margin: '6px 0 0', lineHeight: 1.5 }}>
-          Huruf, angka, dan underscore (_) · min. 3 karakter
-        </p>
-
         <div style={{ marginTop: 24 }}>
           <p style={{ fontSize: 12, color: C.muted, fontWeight: 600, margin: '0 0 8px' }}>Saran</p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

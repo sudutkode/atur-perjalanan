@@ -295,7 +295,7 @@ Respons `GET /v1/notifications` hanya berisi UUID. FE **wajib** resolve:
 
 - **Trigger**: `is_new_user: true` setelah Google login (atau username masih placeholder UUID).
 - Judul _"Buat username"_; subtitle _"Ini nama yang akan dilihat teman saat kamu diundang ke perjalanan."_
-- Label field _"Username"_; prefix ikon `@`; hint _"Huruf, angka, dan underscore (\_) · min. 3 karakter"_ (max 30 = aturan BE, tidak ditampilkan di hint Figma).
+- Label field _"Username"_; prefix ikon `@`.
 - Validasi real-time (`GET /check-username`):
   - Aturan: **huruf, angka, underscore (`_`)** · min. 3 · max. 30
   - Tersedia → border teal + ikon `CheckCircle` + _"Username tersedia"_ (teal)
@@ -445,7 +445,7 @@ Respons `GET /v1/notifications` hanya berisi UUID. FE **wajib** resolve:
 ### `Screen12SearchNoResults` — Query tanpa hasil
 
 - Query contoh: `"xyztravel99"`; _"0 hasil ditemukan"_.
-- `SearchEmptyState`: judul _"Tidak ada hasil"_; deskripsi _"Coba cari dengan nama lengkap atau username yang berbeda. Pastikan ejaannya benar."_; ikon `SearchX` dalam kotak 72×72.
+- `SearchEmptyState`: judul _"Tidak ada hasil"_; deskripsi _"Coba cari dengan username yang berbeda atau undang dengan email."_; ikon `SearchX` dalam kotak 72×72.
 
 ### `Screen13PublicProfile` — Profil pengguna lain (ada trip)
 

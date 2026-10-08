@@ -27,7 +27,7 @@ import { AlertCircle } from '@/components/icons/AlertCircle';
 import { colors } from '@/theme/colors';
 import { shadows } from '@/theme/shadows';
 import { bottomSheetFrame } from '@/theme/layout';
-import { nowTime, nowPlusOneHour } from '@/lib/time';
+import { addHours, nowTime, nowPlusOneHour } from '@/lib/time';
 
 const webOutlineNone = Platform.OS === 'web' ? { outlineStyle: 'none' } as Record<string, unknown> : {};
 
@@ -37,6 +37,9 @@ interface Props {
   activityDate: string;
   dayNumber?: number;
   editActivity?: TripActivity | null;
+  /** Prefilled start time for a new activity (trip start time, or the last
+   *  activity's end time). Falls back to the current clock time. */
+  defaultStartTime?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -47,6 +50,7 @@ export function ActivityFormSheet({
   activityDate,
   dayNumber = 1,
   editActivity,
+  defaultStartTime,
   onClose,
   onSuccess,
 }: Props) {
@@ -92,8 +96,9 @@ export function ActivityFormSheet({
       setTimeError('');
     } else {
       setPlaceName('');
-      setStartTime(nowTime());
-      setEndTime(nowPlusOneHour());
+      const start = defaultStartTime ?? nowTime();
+      setStartTime(start);
+      setEndTime(addHours(start, 1));
       setDescription('');
       setLocationLabel('');
       setMapsLink('');
@@ -105,7 +110,7 @@ export function ActivityFormSheet({
       setTitleError('');
       setTimeError('');
     }
-  }, [editActivity, visible]);
+  }, [editActivity, visible, defaultStartTime]);
 
   const mutation = editActivity ? updateActivity : createActivity;
 

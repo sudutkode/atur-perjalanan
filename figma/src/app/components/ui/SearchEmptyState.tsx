@@ -10,7 +10,7 @@ type SearchEmptyStateProps = {
 /** Empty state konsisten untuk pencarian user / undang teman */
 export function SearchEmptyState({
   title = 'Tidak ada hasil',
-  description = 'Coba cari dengan nama lengkap atau username yang berbeda. Pastikan ejaannya benar.',
+  description = 'Coba cari dengan username yang berbeda atau undang dengan email.',
   compact = false,
 }: SearchEmptyStateProps) {
   const iconSize = compact ? 28 : 32;

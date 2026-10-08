@@ -127,10 +127,17 @@ export function InviteBottomSheet({ visible, tripId, onClose, onEnterTrip }: Inv
             ...prev,
             { email: email.trim(), invitationId: inv.id, delivered: inv.email_delivered },
           ]);
-          setEmailSentBanner(email.trim());
+          if (inv.email_delivered) {
+            setEmailSentBanner(email.trim());
+            setInlineError(null);
+          } else {
+            setEmailSentBanner(null);
+            setInlineError(
+              `Email gagal terkirim ke ${email.trim()}. Undangan tersimpan sebagai pending — periksa pengaturan email.`,
+            );
+          }
           setQuery('');
           setDebouncedQuery('');
-          setInlineError(null);
           setPendingEmail(null);
         },
         onError: (err: Error) => {

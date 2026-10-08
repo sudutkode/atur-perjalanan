@@ -1,6 +1,6 @@
 {
   "expo": {
-    "owner": "sudutkode",
+    "owner": "kizaruxd",
     "name": "Atur Perjalanan",
     "slug": "atur-perjalanan",
     "version": "1.0.0",
@@ -13,7 +13,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "id.sudutkode.aturperjalanan"
+      "bundleIdentifier": "id.kizaruxd.aturperjalanan"
     },
     "android": {
       "edgeToEdgeEnabled": true,
@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FF6B6B"
       },
-      "package": "id.sudutkode.aturperjalanan"
+      "package": "id.kizaruxd.aturperjalanan"
     },
     "web": {
       "bundler": "metro",
@@ -62,14 +62,14 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "bcdb1df4-20e2-4d40-ad6b-2b62d733c5fd"
+        "projectId": "e10a5810-69ea-4402-9bce-772245b09a6c"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/bcdb1df4-20e2-4d40-ad6b-2b62d733c5fd"
+      "url": "https://u.expo.dev/e10a5810-69ea-4402-9bce-772245b09a6c"
     }
   }
 }

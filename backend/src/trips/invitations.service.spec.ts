@@ -220,6 +220,24 @@ describe('InvitationsService', () => {
       expect(result.email_delivered).toBe(true);
     });
 
+    it('resends the email when a pending invitation already exists', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+      prisma.tripInvitation.findFirst.mockResolvedValue(
+        invRow({ method: 'email', invitedUserId: null, invitedEmail: 'friend@example.com' }),
+      );
+
+      const result = await service.createInvitation(TRIP, INVITER, {
+        email: 'friend@example.com',
+      });
+
+      expect(mail.sendInvitationEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ to: 'friend@example.com', tripId: TRIP }),
+      );
+      expect(prisma.tripInvitation.create).not.toHaveBeenCalled();
+      expect(prisma.tripInvitation.update).not.toHaveBeenCalled();
+      expect(result.email_delivered).toBe(true);
+    });
+
     it('links an existing user when the email is registered', async () => {
       prisma.user.findFirst.mockResolvedValue({ id: 'invitee-2' });
       prisma.tripInvitation.findFirst.mockResolvedValue(null);

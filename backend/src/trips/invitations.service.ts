@@ -181,15 +181,14 @@ export class InvitationsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (existing?.status === 'pending') {
-      throw new ConflictException({
-        code: 'INVITATION_EXISTS',
-        message: 'This email already has a pending invitation',
-      });
-    }
+    // Re-inviting an email whose invitation is still pending = resend the
+    // invitation email (idempotent) instead of failing as a duplicate.
+    const isResend = existing?.status === 'pending';
 
     let invitation;
-    if (existing) {
+    if (isResend) {
+      invitation = existing!;
+    } else if (existing) {
       invitation = await this.prisma.tripInvitation.update({
         where: { id: existing.id },
         data: {
@@ -212,8 +211,9 @@ export class InvitationsService {
       });
     }
 
-    // In-app notification for registered users (reactivation or new invite).
-    if (existingUser) {
+    // In-app notification for registered users — only on a real (re)invite,
+    // not on a plain resend of an already-pending invitation.
+    if (existingUser && !isResend) {
       await this.notifications.createNotification({
         userId: existingUser.id,
         type: 'invite',

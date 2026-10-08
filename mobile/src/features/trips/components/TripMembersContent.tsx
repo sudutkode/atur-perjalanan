@@ -124,6 +124,19 @@ export function TripMembersContent({ tripId, isCreator, currentUserId }: TripMem
     });
   }, [cancelInvitation, showToast]);
 
+  const handleReinvite = useCallback((inv: ManagedInvitation) => {
+    const username = inv.invited_user?.username;
+    const payload = username
+      ? { username }
+      : inv.invited_email
+        ? { email: inv.invited_email }
+        : null;
+    if (!payload) return;
+    createInvitation.mutate(payload, {
+      onError: () => showToast('Tidak dapat mengundang ulang.'),
+    });
+  }, [createInvitation, showToast]);
+
   const handleRemove = useCallback((member: Member) => {
     setRemoveTarget(member);
   }, []);
@@ -264,6 +277,7 @@ export function TripMembersContent({ tripId, isCreator, currentUserId }: TripMem
                   invitation={inv}
                   isLast={idx === invitations.length - 1}
                   onCancel={() => handleCancel(inv.id)}
+                  onReinvite={() => handleReinvite(inv)}
                 />
               ))}
             </View>
@@ -426,17 +440,17 @@ function EmailInviteCard({
         </View>
       </View>
       <TouchableOpacity
-        style={[styles.emailCta, (!valid || sending || alreadyInvited) && styles.emailCtaDisabled]}
+        style={[styles.emailCta, (!valid || sending) && styles.emailCtaDisabled]}
         onPress={onInvite}
-        disabled={!valid || sending || alreadyInvited}
+        disabled={!valid || sending}
         activeOpacity={0.8}
       >
         {sending ? (
           <ActivityIndicator size="small" color={colors.white} />
-        ) : alreadyInvited ? (
-          <Text style={styles.emailCtaText}>Terkirim</Text>
         ) : (
-          <Text style={styles.emailCtaText}>Undang lewat Email</Text>
+          <Text style={styles.emailCtaText}>
+            {alreadyInvited ? 'Kirim ulang undangan' : 'Undang lewat Email'}
+          </Text>
         )}
       </TouchableOpacity>
     </View>
@@ -447,10 +461,12 @@ function PendingRow({
   invitation,
   isLast,
   onCancel,
+  onReinvite,
 }: {
   invitation: ManagedInvitation;
   isLast: boolean;
   onCancel: () => void;
+  onReinvite: () => void;
 }) {
   const user = invitation.invited_user;
   const isEmailOnly = invitation.state === 'email_sent';
@@ -480,7 +496,7 @@ function PendingRow({
         <Text style={styles.rowSubtitle}>{subtitle}</Text>
       </View>
       {isRejected ? (
-        <TouchableOpacity style={styles.reinviteBtn} onPress={onCancel} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.reinviteBtn} onPress={onReinvite} activeOpacity={0.7}>
           <Text style={styles.reinviteBtnText}>Undang kembali</Text>
         </TouchableOpacity>
       ) : (

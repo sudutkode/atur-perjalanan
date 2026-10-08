@@ -93,7 +93,7 @@ model Trip {
   createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz
 
-  creator        User                @relation("TripCreator", fields: [creatorId], references: [id])
+  creator        User                @relation("TripCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   coverDocument  TripDocument?       @relation("TripCover", fields: [coverDocumentId], references: [id])
   participants   TripParticipant[]
   invitations    TripInvitation[]
@@ -145,7 +145,7 @@ model TripInvitation {
   updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
   trip        Trip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  inviter     User  @relation("InvitedBy", fields: [invitedBy], references: [id])
+  inviter     User  @relation("InvitedBy", fields: [invitedBy], references: [id], onDelete: Cascade)
   invitedUser User? @relation("InvitedUser", fields: [invitedUserId], references: [id], onDelete: Cascade)
 
   @@map("trip_invitations")
@@ -208,7 +208,7 @@ model TripPoll {
   createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
 
   trip    Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  creator User             @relation("PollCreator", fields: [createdBy], references: [id])
+  creator User             @relation("PollCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   options TripPollOption[]
   votes   TripPollVote[]
 
@@ -321,7 +321,7 @@ model TripMessage {
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
 
   trip      Trip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  sender    User              @relation("MessageSender", fields: [senderId], references: [id])
+  sender    User              @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   replyTo   TripMessage?      @relation("MessageReply", fields: [replyToId], references: [id])
   replies   TripMessage[]     @relation("MessageReply")
   documents TripDocument[]    @relation("MessageDocument")
@@ -364,7 +364,7 @@ model TripDocument {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
   trip              Trip           @relation("TripDocuments", fields: [tripId], references: [id], onDelete: Cascade)
-  uploader          User           @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+  uploader          User           @relation("DocumentUploader", fields: [uploadedBy], references: [id], onDelete: Cascade)
   tripsAsCover      Trip[]         @relation("TripCover")
   activitiesAsCover TripActivity[] @relation("ActivityCover")
   message           TripMessage?   @relation("MessageDocument", fields: [messageId], references: [id], onDelete: Cascade)

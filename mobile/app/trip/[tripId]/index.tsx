@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -107,6 +107,17 @@ export default function TripDetailScreen() {
   const activities = activitiesData?.data ?? [];
   const isLoading = tripLoading || activitiesLoading || membersLoading;
   const isCreator = membersData?.is_creator ?? trip?.creator?.id === user?.id;
+
+  // Default start time for a NEW activity: continue after the last activity of
+  // the selected day, else fall back to the trip's own start time.
+  const defaultActivityStartTime = useMemo(() => {
+    const day = activeDayIndex + 1;
+    const dayActivities = activities.filter((a) => (a.day_number ?? 1) === day);
+    const last = dayActivities[dayActivities.length - 1];
+    if (last?.end_time) return last.end_time;
+    if (trip?.start_time) return trip.start_time;
+    return undefined;
+  }, [activities, activeDayIndex, trip?.start_time]);
 
   const dateRange = trip
     ? formatDateRange(
@@ -485,6 +496,7 @@ export default function TripDetailScreen() {
         activityDate={editingActivity?.activity_date ?? ''}
         dayNumber={activeDayIndex + 1}
         editActivity={editingActivity}
+        defaultStartTime={defaultActivityStartTime}
         onClose={() => {
           setShowForm(false);
           setEditingActivity(null);

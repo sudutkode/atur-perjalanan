@@ -135,7 +135,7 @@ Satu Postman Collection terpusat di `docs/postman/`, diperbarui **inkremental** 
 - [x] Supabase project dibuat (cloud); `supabase/config.toml` untuk `supabase start` lokal
 - [x] `prisma migrate dev` berhasil membuat migrasi pertama ke Supabase (lokal atau cloud) — **manual step: requires DB credentials**
 - [ ] Cloudflare R2 bucket `atur-perjalanan-media` dibuat; API token (scoped) dibuat — **manual step: requires Cloudflare account**
-- [x] `.env.example` mendokumentasikan seluruh variabel di `ARCHITECTURE.md` Appendix
+- [x] `backend/.env.example` mendokumentasikan seluruh variabel di `ARCHITECTURE.md` Appendix
 - [x] `GET /health` di NestJS merespons 200
 
 ---
@@ -513,7 +513,7 @@ mobile/
 - [x] Hanya kalender user sendiri (`calendarId: 'primary'`); bukan untuk invitee
 - [x] Token disimpan di DB; refresh token dipakai saat access token kedaluwarsa
 - [x] Error dari Google API di-log, tidak menggagalkan operasi DB trip
-- [x] `GOOGLE_CALENDAR_CLIENT_ID` / `GOOGLE_CALENDAR_CLIENT_SECRET` terdokumentasi di `.env.example`
+- [x] `GOOGLE_CALENDAR_CLIENT_ID` / `GOOGLE_CALENDAR_CLIENT_SECRET` terdokumentasi di `backend/.env.example`
 - [x] Mobile: `CalendarEventModal` (`mobile/src/features/calendar/components/CalendarEventModal.tsx`, Screen 96) — tombol dari menu ⋮ trip detail, disabled saat voting
 - [x] Postman — folder `Integrations` ditambahkan ke `docs/postman/atur-perjalanan-api.postman_collection.json` (3 request: auth-url, callback, create event)
 
@@ -556,7 +556,7 @@ mobile/
 
 ### Checklist — Limit User & Free-Tier
 
-- [x] `USER_LIMIT` (default 50) di config + `.env.example`
+- [x] `USER_LIMIT` (default 50) di config + `backend/.env.example`
 - [x] Backend gate di `googleLogin` — blokir registrasi baru saat user aktif ≥ `USER_LIMIT` (403 `USER_LIMIT_REACHED`); user lama tetap login
 - [x] UI sign-in menangani `USER_LIMIT_REACHED` — pesan "Aplikasi sedang penuh"
 

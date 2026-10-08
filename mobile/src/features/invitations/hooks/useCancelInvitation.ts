@@ -10,7 +10,7 @@ export function useCancelInvitation(tripId: string) {
       apiClient.delete<void>(`/trips/${tripId}/invitations/${invitationId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
-      queryClient.invalidateQueries({ queryKey: ['tripMembers', tripId] });
+      queryClient.invalidateQueries({ queryKey: ['members', tripId] });
     },
   });
 }

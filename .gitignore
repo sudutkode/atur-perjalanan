@@ -53,3 +53,5 @@ pnpm-debug.log*
 *.ipa
 *.apk
 *.aab
+.vercel
+.env*

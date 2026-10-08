@@ -15,7 +15,7 @@ export function useCreateInvitation(tripId: string) {
       apiClient.post<InvitationBasic>(`/trips/${tripId}/invitations`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
-      queryClient.invalidateQueries({ queryKey: ['tripMembers', tripId] });
+      queryClient.invalidateQueries({ queryKey: ['members', tripId] });
     },
   });
 }

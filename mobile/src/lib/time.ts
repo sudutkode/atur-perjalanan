@@ -14,6 +14,13 @@ export function nowPlusOneHour(): string {
   return formatHHMM(d);
 }
 
+/** Add `hours` to a "HH:MM" string (wraps past midnight). */
+export function addHours(time: string, hours: number): string {
+  const [h, m] = time.split(':').map(Number);
+  const total = (((h * 60 + m + hours * 60) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 /** Convenience pair: [now, now+1h] for start/end time defaults. */
 export function defaultTimeRange(): { start: string; end: string } {
   return { start: nowTime(), end: nowPlusOneHour() };

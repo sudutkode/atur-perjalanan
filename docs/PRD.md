@@ -40,7 +40,7 @@
 
 - Wajib untuk pengguna baru (`is_new_user: true` dari Google login).
 - Judul _"Buat username"_; subtitle: _"Ini nama yang akan dilihat teman saat kamu diundang ke perjalanan."_
-- Label _"Username"_; input dengan ikon `@`; hint _"Huruf, angka, dan underscore (\_) · min. 3 karakter"_; validasi real-time via `GET /v1/users/check-username`:
+- Label _"Username"_; input dengan ikon `@`; validasi real-time via `GET /v1/users/check-username`:
   - **Aturan**: huruf, angka, underscore (`_`) · min. 3 · max. 30 karakter
   - **Tersedia**: border teal + ikon check + teks _"Username tersedia"_ (teal)
   - **Tidak tersedia / format salah**: border coral + pesan error inline (implementasi mobile; preview Figma = happy path)

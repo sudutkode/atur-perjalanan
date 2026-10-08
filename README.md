@@ -65,31 +65,23 @@ Seluruh informasi mendalam terkait produk dan teknis ada di folder `/docs`:
 ### 1. Setup Environment
 
 ```bash
-# Clone repo
+# Clone repo & install semua dependency (root + backend + mobile)
 git clone <repo-url>
 cd atur-perjalanan
-
-# Install semua dependency (root + backend + mobile) via workspace
 pnpm install
 
-# Generate Prisma client (wajib setelah install atau perubahan schema)
+# Generate Prisma client (setelah install atau perubahan schema)
 pnpm --filter backend prisma:generate
 
-# Buat dua file .env (wajib dua file terpisah)
-cp .env.example .env               # Digunakan tooling root (Supabase CLI, dsb.)
-cp .env.example backend/.env       # Digunakan NestJS server
+# Salin template env ke tiap package — jangan commit file hasil salinan
+cp backend/.env.example backend/.env          # NestJS server (baca .env)
+cp mobile/.env.example mobile/.env.local      # Expo client (baca .env.local)
 
-# Edit kedua file: isi JWT_SECRET, GOOGLE_CLIENT_ID, SUPABASE_URL,
-# SUPABASE_SERVICE_ROLE_KEY, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID,
-# R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, dll.
-# R2_PUBLIC_URL opsional (hanya referensi internal di DB); akses media ke client
-# memakai presigned GET URL — lihat docs/ARCHITECTURE.md §7.
-# Generate JWT secret: openssl rand -hex 32
-#
-# Catatan: Database berjalan di Supabase (cloud), bukan Docker lokal.
-# Untuk pengembangan offline, gunakan `supabase start` (Supabase CLI)
-# yang menjalankan Postgres lokal di port 54322 — lihat docs/ARCHITECTURE.md §3.
+# Isi nilainya — terutama JWT_SECRET, CRON_SECRET, GOOGLE_*, SUPABASE_*, R2_*.
+# Generate secret dengan: openssl rand -hex 32
 ```
+
+Database berjalan di **Supabase (cloud)**, bukan Docker lokal. Untuk pengembangan offline, jalankan `supabase start` (Postgres lokal di port 54322) — lihat [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §3. `R2_PUBLIC_URL` bersifat opsional (hanya referensi internal DB); akses media ke client memakai presigned GET URL — lihat [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §7.
 
 ### 2. Jalankan Backend
 
@@ -158,10 +150,11 @@ pnpm --filter mobile build:production:ios          # EAS production build (IPA �
 ```bash
 # 1. Push repo ke GitHub
 # 2. vercel.com → Add New → Project → import repo
-#    Framework: Other | Root: backend
-#    Build: pnpm run build:vercel
-#    (atau biarkan Vercel baca backend/vercel.json otomatis)
-#    Entry function: backend/api/index.ts (folder /api, di-rewrite dari backend/vercel.json)
+#    Framework Preset: Other | Root Directory: / (repo root)
+#    Build Command & Output Directory dibaca dari vercel.json root:
+#    build `pnpm --filter backend run build:vercel` → output `backend/dist`
+#    Entry function: api/index.js (folder /api, dibundle esbuild dari
+#    backend/src/vercel-handler.ts — lihat docs/DEPLOYMENT.md §1.2)
 # 3. Isi env vars (Production):
 #    DATABASE_URL (pooler :6543, connection_limit=1), DIRECT_URL (:5432),
 #    SUPABASE_*, JWT_SECRET, GOOGLE_CLIENT_ID, R2_*, APP_WEB_URL,
@@ -185,7 +178,7 @@ pnpm export:web           # output: mobile/dist
 #                  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID, EXPO_PUBLIC_SUPABASE_*
 ```
 
-> **R2 CORS**: tambahkan origin `https://atur-perjalanan.pages.dev` ke bucket CORS (lihat `.env.example`).
+> **R2 CORS**: tambahkan origin `https://atur-perjalanan.pages.dev` ke bucket CORS (lihat [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §2.3).
 
 ### 3. Google OAuth (manual)
 

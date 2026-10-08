@@ -133,7 +133,7 @@ Tab aktif: coral. Tab inactive: muted.
 
 **`Screen3Auth`**: hero travel + logo coral; headline _Mulai Perjalananmu_; subtext _Bergabung dan rencanakan perjalanan seru bersama orang-orang tersayang._; **Lanjutkan dengan Google** (MVP); **Masuk dengan Email** (post-MVP, nonaktif); footer legal S&K + Privasi.
 
-**`Screen4Username`**: _Buat username_; subtitle undangan; validasi real-time; aturan `a-z`, `0-9`, `_`, min 3 max 30; hint _Huruf, angka, dan underscore (\_) · min. 3 karakter_; saran chips; CTA _Lanjutkan_.
+**`Screen4Username`**: _Buat username_; subtitle undangan; validasi real-time; aturan `a-z`, `0-9`, `_`, min 3 max 30; saran chips; CTA _Lanjutkan_.
 
 ### §3 Beranda (Home) — Tab 1
 

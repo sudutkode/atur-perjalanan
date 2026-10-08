@@ -24,7 +24,7 @@
 - [ ] Footer _Dengan melanjutkan, kamu menyetujui Syarat & Ketentuan serta Kebijakan Privasi kami._ tampil di layar login.
 - [ ] Login Google sukses: data Nama, Email, Avatar tersimpan di `users` (`POST /v1/auth/google`).
 - [ ] Pengguna baru → form username (`Screen4Username`); lama → langsung Beranda.
-- [ ] Username screen: judul _Buat username_; subtitle undangan; hint _Huruf, angka, dan underscore (\_) · min. 3 karakter_.
+- [ ] Username screen: judul _Buat username_; subtitle undangan.
 - [ ] Username: huruf, angka, underscore (`_`), min. 3, max. 30; cek real-time (`GET /v1/users/check-username`).
 - [ ] Username tersedia: border teal + _"Username tersedia"_; duplikat/format salah: border coral + pesan error.
 - [ ] Saran username (chips) opsional client-only; CTA _Lanjutkan_ → `POST /v1/auth/complete-registration`.

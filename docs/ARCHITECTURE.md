@@ -211,6 +211,7 @@ atur-perjalanan/
 │   │   ├── schema.prisma         # Single source of truth for DB schema
 │   │   └── migrations/           # Prisma Migrate — sequential, versioned SQL
 │   ├── test/                     # e2e tests (Jest + Supertest)
+│   ├── .env.example              # Backend env template (copy to .env)
 │   ├── package.json
 │   └── tsconfig.json
 │
@@ -233,6 +234,7 @@ atur-perjalanan/
 │   │   ├── theme/                 # Design tokens mirrored from figma/src/app/components/colors.ts
 │   │   └── lib/
 │   │       └── secureStorage.ts   # expo-secure-store wrapper for JWT
+│   ├── .env.example              # Mobile env template (copy to .env)
 │   ├── app.json                  # Expo config (EAS project id, scheme, icons)
 │   ├── eas.json                  # EAS Build/Submit profiles (M20)
 │   ├── package.json
@@ -259,7 +261,6 @@ atur-perjalanan/
 │   ├── MILESTONES.md             # Progress tracking lives here — not in this file
 │   └── ARCHITECTURE.md           # This file
 │
-├── .env.example                  # Template for required env vars (no secrets)
 ├── supabase/                     # Supabase CLI project (local Postgres, config.toml)
 ├── tsconfig.base.json            # Root TS config — backend extends this
 ├── .prettierrc                    # Prettier config (semi, singleQuote, trailingComma all)
@@ -1354,7 +1355,7 @@ sequenceDiagram
 
 ## Appendix: Environment Variables
 
-The following environment variables are required by the backend. They must **never** be committed to the repository. Use `.env.example` as a reference template.
+The following environment variables are required by the backend. They must **never** be committed to the repository. Use `backend/.env.example` as a reference template.
 
 | Variable                                    | Description                                                                                                                                                                     |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1366,7 +1367,8 @@ The following environment variables are required by the backend. They must **nev
 | `SUPABASE_ANON_KEY`                         | Public anon key — shipped to the mobile client for Realtime subscriptions                                                                                                       |
 | `JWT_SECRET`                                | Random 256-bit secret for signing the app's own auth JWTs                                                                                                                       |
 | `GOOGLE_CLIENT_ID`                          | OAuth 2.0 Client ID from Google Cloud Console                                                                                                                                   |
-| `GOOGLE_CALENDAR_SA_KEY`                    | Path to Google service account JSON key file                                                                                                                                    |
+| `GOOGLE_CALENDAR_CLIENT_ID`                 | Google Calendar OAuth 2.0 Client ID (per-user, offline access — scope `.../auth/calendar.events`)                                                                                |
+| `GOOGLE_CALENDAR_CLIENT_SECRET`             | Google Calendar OAuth 2.0 Client secret                                                                                                                                         |
 | `R2_ACCOUNT_ID`                             | Cloudflare account ID                                                                                                                                                           |
 | `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | R2 API token credentials (scoped to the media bucket only)                                                                                                                      |
 | `R2_BUCKET_NAME`                            | e.g. `atur-perjalanan-media`                                                                                                                                                    |

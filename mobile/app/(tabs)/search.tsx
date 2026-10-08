@@ -179,7 +179,7 @@ export default function SearchScreen() {
             </View>
             <Text style={styles.emptyTitle}>Tidak ada hasil</Text>
             <Text style={styles.emptyDesc}>
-              Coba cari dengan nama lengkap atau username yang berbeda. Pastikan ejaannya benar.
+              Coba cari dengan username yang berbeda atau undang dengan email.
             </Text>
           </View>
         ) : (
