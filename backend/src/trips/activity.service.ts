@@ -269,7 +269,12 @@ export class ActivityService {
       where: { id: activityId },
       data: {
         placeName: dto.place_name !== undefined ? dto.place_name : undefined,
-        activityDate: dto.activity_date ? new Date(dto.activity_date) : undefined,
+        activityDate:
+          dto.activity_date !== undefined
+            ? dto.activity_date
+              ? new Date(dto.activity_date)
+              : null
+            : undefined,
         dayNumber,
         startTime: dto.start_time !== undefined ? this.parseTimeToDate(dto.start_time) : undefined,
         endTime: dto.end_time !== undefined ? this.parseTimeToDate(dto.end_time) : undefined,
@@ -277,7 +282,7 @@ export class ActivityService {
         description: dto.description !== undefined ? dto.description : undefined,
         locationLabel: dto.location_label !== undefined ? dto.location_label : undefined,
         mapsLink: dto.maps_link !== undefined ? dto.maps_link : undefined,
-        refLinks: dto.ref_links ?? undefined,
+        refLinks: dto.ref_links !== undefined ? dto.ref_links : undefined,
         coverSource: dto.cover_source !== undefined ? (dto.cover_source as CoverSource) : undefined,
         coverIcon: dto.cover_icon !== undefined ? dto.cover_icon : undefined,
         coverDocumentId: dto.cover_document_id !== undefined ? dto.cover_document_id : undefined,

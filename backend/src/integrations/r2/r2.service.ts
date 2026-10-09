@@ -163,7 +163,7 @@ export class R2Service {
       const { pathname } = new URL(urlOrKey);
       return pathname.replace(/^\/+/, '');
     } catch {
-      return urlOrKey;
+      return urlOrKey.replace(/^\/+/, '');
     }
   }
 
@@ -179,8 +179,15 @@ export class R2Service {
     }
   }
 
-  /** Resolve the public/CDN URL for a stored object key. */
+  /**
+   * Resolve the public/CDN URL for a stored object key.
+   *
+   * `R2_PUBLIC_URL` is optional — clients always receive presigned GET URLs, so
+   * a public base is never required. When it is unset/empty we store the bare
+   * storage key, which every read path presigns from anyway.
+   */
   resolvePublicUrl(storageKey: string): string {
-    return `${this.publicUrl.replace(/\/+$/, '')}/${storageKey}`;
+    const base = (this.publicUrl ?? '').replace(/\/+$/, '');
+    return base ? `${base}/${storageKey}` : storageKey;
   }
 }

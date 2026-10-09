@@ -423,7 +423,7 @@ var require_r2_service = __commonJS({
           const { pathname } = new URL(urlOrKey);
           return pathname.replace(/^\/+/, "");
         } catch {
-          return urlOrKey;
+          return urlOrKey.replace(/^\/+/, "");
         }
       }
       async headObject(storageKey) {
@@ -435,7 +435,8 @@ var require_r2_service = __commonJS({
         }
       }
       resolvePublicUrl(storageKey) {
-        return `${this.publicUrl.replace(/\/+$/, "")}/${storageKey}`;
+        const base = (this.publicUrl ?? "").replace(/\/+$/, "");
+        return base ? `${base}/${storageKey}` : storageKey;
       }
     };
     exports2.R2Service = R2Service;
@@ -524,6 +525,16 @@ var require_auth_service = __commonJS({
             }
           });
         })();
+        if (user.email) {
+          await this.prisma.tripInvitation.updateMany({
+            where: {
+              invitedEmail: user.email.toLowerCase(),
+              invitedUserId: null,
+              status: "pending"
+            },
+            data: { invitedUserId: user.id }
+          });
+        }
         const needsRegistration = isNewUser || /^user_\d+$/.test(user.username);
         const accessToken = this.signAppJwt(user.id);
         const realtimeToken = this.realtimeToken.mint(user.id);
@@ -581,9 +592,13 @@ var require_dist = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ConvertToTripSchema = exports2.UpdateWishlistSchema = exports2.CreateWishlistSchema = exports2.RegisterPushTokenSchema = exports2.MarkAsReadSchema = exports2.CreateNotificationSchema = exports2.VoteDateCandidateSchema = exports2.VoteSchema = exports2.UpdatePollSchema = exports2.CreatePollSchema = exports2.CreateDocumentSchema = exports2.PresignUploadSchema = exports2.SetTripCoverSchema = exports2.RespondInvitationSchema = exports2.CreateInvitationSchema = exports2.CreateMessageSchema = exports2.UpdateActivitySchema = exports2.CreateActivitySchema = exports2.UpdateTripSchema = exports2.CreateTripSchema = exports2.UpdateAvatarSchema = exports2.PresignAvatarSchema = exports2.UpdateUserSchema = exports2.SearchUsersSchema = exports2.CheckUsernameSchema = exports2.CompleteRegistrationSchema = exports2.GoogleAuthSchema = exports2.PRIORITY_LEVELS = void 0;
+    exports2.clearable = clearable;
     var zod_1 = require("zod");
     var TIME_HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
     exports2.PRIORITY_LEVELS = ["high", "medium", "low"];
+    function clearable(schema) {
+      return zod_1.z.preprocess((value) => typeof value === "string" && value.trim() === "" ? null : value, schema.nullable().optional());
+    }
     exports2.GoogleAuthSchema = zod_1.z.object({
       id_token: zod_1.z.string()
     });
@@ -600,9 +615,9 @@ var require_dist = __commonJS({
     });
     exports2.UpdateUserSchema = zod_1.z.object({
       name: zod_1.z.string().trim().min(1).max(255).optional(),
-      bio: zod_1.z.string().max(150).optional(),
-      website_url: zod_1.z.string().url().max(255).optional(),
-      location_label: zod_1.z.string().max(100).optional(),
+      bio: clearable(zod_1.z.string().max(150)),
+      website_url: clearable(zod_1.z.string().url().max(255)),
+      location_label: clearable(zod_1.z.string().max(100)),
       is_public: zod_1.z.union([zod_1.z.boolean(), zod_1.z.literal("true"), zod_1.z.literal("false")]).transform((v) => v === true || v === "true").optional()
     });
     exports2.PresignAvatarSchema = zod_1.z.object({
@@ -629,11 +644,11 @@ var require_dist = __commonJS({
     exports2.UpdateTripSchema = zod_1.z.object({
       name: zod_1.z.string().max(255).optional(),
       tags: zod_1.z.array(zod_1.z.string()).optional(),
-      start_date: zod_1.z.string().datetime().optional(),
-      end_date: zod_1.z.string().datetime().optional(),
+      start_date: zod_1.z.string().datetime().nullable().optional(),
+      end_date: zod_1.z.string().datetime().nullable().optional(),
       is_all_day: zod_1.z.boolean().optional(),
-      start_time: zod_1.z.string().regex(TIME_HHMM, "start_time must be in HH:MM format").optional(),
-      end_time: zod_1.z.string().regex(TIME_HHMM, "end_time must be in HH:MM format").optional(),
+      start_time: clearable(zod_1.z.string().regex(TIME_HHMM, "start_time must be in HH:MM format")),
+      end_time: clearable(zod_1.z.string().regex(TIME_HHMM, "end_time must be in HH:MM format")),
       is_public: zod_1.z.boolean().optional()
     });
     var RefLinkSchema = zod_1.z.object({
@@ -659,7 +674,23 @@ var require_dist = __commonJS({
       thumbnail_url: zod_1.z.string().nullable().optional(),
       sort_order: zod_1.z.number().optional()
     });
-    exports2.UpdateActivitySchema = exports2.CreateActivitySchema.partial();
+    exports2.UpdateActivitySchema = zod_1.z.object({
+      place_name: zod_1.z.string().max(255).optional(),
+      activity_date: zod_1.z.string().datetime().nullable().optional(),
+      day_number: zod_1.z.number().int().min(1).optional(),
+      start_time: zod_1.z.string().regex(TIME_HHMM).optional(),
+      end_time: zod_1.z.string().regex(TIME_HHMM).optional(),
+      kind: ActivityKindEnum.optional(),
+      description: clearable(zod_1.z.string()),
+      location_label: clearable(zod_1.z.string()),
+      maps_link: clearable(zod_1.z.string().url()),
+      ref_links: zod_1.z.array(RefLinkSchema).optional(),
+      cover_source: CoverSourceEnum.optional(),
+      cover_icon: clearable(zod_1.z.string()),
+      cover_document_id: zod_1.z.string().uuid().nullable().optional(),
+      thumbnail_url: clearable(zod_1.z.string()),
+      sort_order: zod_1.z.number().optional()
+    });
     exports2.CreateMessageSchema = zod_1.z.object({
       message_kind: zod_1.z.enum(["text", "photo", "video"]),
       message_text: zod_1.z.string().max(2e3).optional(),
@@ -697,8 +728,10 @@ var require_dist = __commonJS({
         candidate_id: zod_1.z.string().optional(),
         start_date: zod_1.z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "start_date must be a date in YYYY-MM-DD format").optional(),
         end_date: zod_1.z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "end_date must be a date in YYYY-MM-DD format").optional(),
-        maps_link: zod_1.z.string().url("maps_link must be a valid URL").optional(),
-        ref_links: zod_1.z.array(PollRefLinkSchema).optional()
+        maps_link: zod_1.z.string().url("maps_link must be a valid URL").nullable().optional(),
+        ref_links: zod_1.z.array(PollRefLinkSchema).optional(),
+        start_time: zod_1.z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "start_time must be in HH:MM format").optional(),
+        end_time: zod_1.z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "end_time must be in HH:MM format").optional()
       })
     ]);
     exports2.CreatePollSchema = zod_1.z.object({
@@ -708,7 +741,8 @@ var require_dist = __commonJS({
       deadline: zod_1.z.string().datetime().optional()
     });
     exports2.UpdatePollSchema = exports2.CreatePollSchema.partial().extend({
-      options: zod_1.z.array(PollOptionSchema).min(1).max(10).optional()
+      options: zod_1.z.array(PollOptionSchema).min(1).max(10).optional(),
+      deadline: zod_1.z.string().datetime().nullable().optional()
     });
     exports2.VoteSchema = zod_1.z.object({
       option_id: zod_1.z.string().uuid()
@@ -745,7 +779,21 @@ var require_dist = __commonJS({
       priority_level: zod_1.z.enum(exports2.PRIORITY_LEVELS).optional(),
       thumbnail_url: zod_1.z.string().optional()
     });
-    exports2.UpdateWishlistSchema = exports2.CreateWishlistSchema.partial();
+    exports2.UpdateWishlistSchema = zod_1.z.object({
+      place_name: zod_1.z.string().max(255).optional(),
+      start_time: clearable(zod_1.z.string().regex(TIME_HHMM, "start_time must be in HH:MM format")),
+      end_time: clearable(zod_1.z.string().regex(TIME_HHMM, "end_time must be in HH:MM format")),
+      location_label: clearable(zod_1.z.string()),
+      maps_link: clearable(zod_1.z.string().url("maps_link must be a valid URL")),
+      ref_links: zod_1.z.array(zod_1.z.object({
+        url: zod_1.z.string().url("ref link url must be a valid URL"),
+        label: zod_1.z.string().optional()
+      })).optional(),
+      notes: clearable(zod_1.z.string()),
+      tags: zod_1.z.array(zod_1.z.string()).optional(),
+      priority_level: zod_1.z.enum(exports2.PRIORITY_LEVELS).optional(),
+      thumbnail_url: clearable(zod_1.z.string())
+    });
     exports2.ConvertToTripSchema = zod_1.z.object({
       trip_name: zod_1.z.string().max(255).optional(),
       tags: zod_1.z.array(zod_1.z.string()).optional(),
@@ -1921,11 +1969,11 @@ var require_trips_service = __commonJS({
           data: {
             name: dto.name,
             tags: dto.tags ?? void 0,
-            startDate: dto.start_date ? new Date(dto.start_date) : void 0,
-            endDate: dto.end_date ? new Date(dto.end_date) : void 0,
+            startDate: dto.start_date !== void 0 ? dto.start_date ? new Date(dto.start_date) : null : void 0,
+            endDate: dto.end_date !== void 0 ? dto.end_date ? new Date(dto.end_date) : null : void 0,
             isAllDay: dto.is_all_day,
-            startTime: dto.start_time ? /* @__PURE__ */ new Date(`2000-01-01T${dto.start_time}:00Z`) : void 0,
-            endTime: dto.end_time ? /* @__PURE__ */ new Date(`2000-01-01T${dto.end_time}:00Z`) : void 0,
+            startTime: dto.start_time !== void 0 ? dto.start_time ? /* @__PURE__ */ new Date(`2000-01-01T${dto.start_time}:00Z`) : null : void 0,
+            endTime: dto.end_time !== void 0 ? dto.end_time ? /* @__PURE__ */ new Date(`2000-01-01T${dto.end_time}:00Z`) : null : void 0,
             isPublic: dto.is_public
           }
         });
@@ -2536,62 +2584,103 @@ var require_mail_service = __commonJS({
     var common_1 = require("@nestjs/common");
     var config_1 = require("@nestjs/config");
     var nodemailer = __importStar(require("nodemailer"));
+    var dns_1 = require("dns");
+    var net_1 = require("net");
+    function escapeHtml(value) {
+      return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
     var MailService = MailService_1 = class MailService {
       constructor(config) {
         this.config = config;
         this.logger = new common_1.Logger(MailService_1.name);
-        const host = this.config.get("mail.host");
-        if (!host) {
+        this.transporter = null;
+        if (!this.config.get("mail.host")) {
           this.logger.warn("SMTP_HOST not configured \u2014 invitation emails will not be sent");
-          this.transporter = null;
-          return;
         }
-        this.transporter = nodemailer.createTransport({
-          host,
+      }
+      async getTransporter() {
+        if (this.transporter)
+          return this.transporter;
+        const host = this.config.get("mail.host");
+        if (!host)
+          return null;
+        let connectHost = host;
+        let servername;
+        if (!(0, net_1.isIP)(host)) {
+          try {
+            connectHost = (await dns_1.promises.lookup(host, { family: 4 })).address;
+            servername = host;
+          } catch (err) {
+            this.logger.warn(`SMTP host lookup failed for ${host}, connecting by hostname: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+        const transporter = nodemailer.createTransport({
+          host: connectHost,
           port: parseInt(this.config.get("mail.port") ?? "587", 10),
           secure: this.config.get("mail.secure") === "true",
           auth: this.config.get("mail.user") ? {
             user: this.config.get("mail.user"),
             pass: this.config.get("mail.pass") ?? ""
-          } : void 0
+          } : void 0,
+          ...servername ? { tls: { servername } } : {}
         });
+        if (servername || (0, net_1.isIP)(host))
+          this.transporter = transporter;
+        return transporter;
       }
       async sendInvitationEmail({ to, tripId, tripName, inviterName }) {
-        if (!this.transporter)
+        const transporter = await this.getTransporter();
+        if (!transporter)
           return false;
-        const webUrl = this.config.get("app.webUrl") ?? "http://localhost:8081";
+        const webUrl = (this.config.get("app.webUrl") ?? "http://localhost:8081").replace(/\/+$/, "");
         const tripUrl = `${webUrl}/trip/${tripId}`;
         const from = this.config.get("mail.from") ?? "Atur Perjalanan <noreply@atur-perjalanan.app>";
+        if (this.config.get("appEnv") === "production" && /localhost|127\.0\.0\.1/.test(webUrl)) {
+          this.logger.warn(`APP_WEB_URL is "${webUrl}" in production \u2014 invitation links will be broken`);
+        }
+        const safeTripName = escapeHtml(tripName);
+        const safeInviterName = escapeHtml(inviterName);
         try {
-          await this.transporter.sendMail({
+          await transporter.sendMail({
             from,
             to,
-            subject: `${inviterName} mengundangmu bergabung ke "${tripName}"`,
+            subject: `${inviterName} mengundangmu ke perjalanan "${tripName}"`,
             text: [
-              `Hai,`,
-              ``,
+              "Hai,",
+              "",
               `${inviterName} mengundangmu untuk bergabung ke perjalanan "${tripName}" di Atur Perjalanan.`,
-              ``,
-              `Buka link berikut untuk melihat detailnya:`,
+              "",
+              "Lihat detail dan jawab undangan lewat tautan berikut:",
               tripUrl,
-              ``,
-              `\u2014 Atur Perjalanan`
+              "",
+              `Kalau kamu tidak mengenal ${inviterName}, abaikan saja email ini.`,
+              "",
+              "\u2014 Atur Perjalanan"
             ].join("\n"),
             html: `
-          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2 style="color: #1A1A2E;">Kamu diundang ke "${tripName}"</h2>
-            <p style="color: #1A1A2E; font-size: 14px; line-height: 1.6;">
-              ${inviterName} mengundangmu untuk bergabung ke perjalanan
-              <strong>${tripName}</strong> di Atur Perjalanan.
+          <div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; color: #1A1A2E;">
+            <h2 style="margin: 0 0 12px;">Kamu diundang ke perjalanan</h2>
+            <p style="font-size: 14px; line-height: 1.6; margin: 0 0 8px;">
+              <strong>${safeInviterName}</strong> mengundangmu untuk bergabung ke perjalanan
+              <strong>${safeTripName}</strong> di Atur Perjalanan.
+            </p>
+            <p style="font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
+              Buka tautan di bawah untuk melihat detail dan menjawab undangan.
             </p>
             <a href="${tripUrl}"
                style="display: inline-block; background: #FF6B6B; color: #FFFFFF;
                       text-decoration: none; font-weight: 700; padding: 12px 24px;
-                      border-radius: 14px; margin-top: 8px;">
+                      border-radius: 14px;">
               Lihat Perjalanan
             </a>
-            <p style="color: #9091A0; font-size: 12px; margin-top: 24px;">
-              Atur Perjalanan \u2014 ubah wacana perjalanan menjadi kenyataan.
+            <p style="font-size: 12px; line-height: 1.6; color: #9091A0; margin: 24px 0 0;">
+              Tombol tidak berfungsi? Salin tautan ini ke browser:<br>
+              <a href="${tripUrl}" style="color: #9091A0;">${tripUrl}</a>
+            </p>
+            <hr style="border: none; border-top: 1px solid #EEEEEE; margin: 24px 0 16px;" />
+            <p style="font-size: 12px; line-height: 1.6; color: #9091A0; margin: 0;">
+              Atur Perjalanan \u2014 ubah wacana perjalanan menjadi kenyataan.<br>
+              Kalau kamu tidak mengenal ${safeInviterName}, abaikan saja email ini.
             </p>
           </div>
         `
@@ -2754,14 +2843,11 @@ var require_invitations_service = __commonJS({
           where: { tripId, invitedEmail: normalizedEmail },
           orderBy: { createdAt: "desc" }
         });
-        if (existing?.status === "pending") {
-          throw new common_1.ConflictException({
-            code: "INVITATION_EXISTS",
-            message: "This email already has a pending invitation"
-          });
-        }
+        const isResend = existing?.status === "pending";
         let invitation;
-        if (existing) {
+        if (isResend) {
+          invitation = existing;
+        } else if (existing) {
           invitation = await this.prisma.tripInvitation.update({
             where: { id: existing.id },
             data: {
@@ -2783,7 +2869,7 @@ var require_invitations_service = __commonJS({
             }
           });
         }
-        if (existingUser) {
+        if (existingUser && !isResend) {
           await this.notifications.createNotification({
             userId: existingUser.id,
             type: "invite",
@@ -3615,7 +3701,7 @@ var require_voting_service = __commonJS({
         }
         const trip = await this.prisma.trip.findUnique({
           where: { id: tripId },
-          select: { creatorId: true, status: true, startDate: true }
+          select: { creatorId: true, status: true, startDate: true, endDate: true }
         });
         if (trip?.creatorId !== userId) {
           throw new common_1.ForbiddenException({
@@ -3669,12 +3755,50 @@ var require_voting_service = __commonJS({
             });
             if (winningOption) {
               const activityCount = await tx.tripActivity.count({ where: { tripId } });
+              let dayNumber = 1;
+              let activityDate = null;
+              if (trip.status === "fixed" && trip.startDate) {
+                const start = new Date(trip.startDate);
+                start.setHours(0, 0, 0, 0);
+                const end = trip.endDate ? new Date(trip.endDate) : start;
+                end.setHours(0, 0, 0, 0);
+                const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / 864e5) + 1);
+                const today = /* @__PURE__ */ new Date();
+                today.setHours(0, 0, 0, 0);
+                const diffDays = Math.floor((today.getTime() - start.getTime()) / 864e5);
+                dayNumber = Math.min(Math.max(diffDays + 1, 1), totalDays);
+                activityDate = new Date(start.getTime() + (dayNumber - 1) * 864e5);
+              }
+              const rawOpt = winningOption;
+              const startTimeStr = rawOpt.startTime ?? rawOpt.start_time;
+              const endTimeStr = rawOpt.endTime ?? rawOpt.end_time;
+              const now = /* @__PURE__ */ new Date();
+              const fallbackStart = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+              const fallbackEndDate = new Date(now.getTime() + 60 * 60 * 1e3);
+              const fallbackEnd = `${String(fallbackEndDate.getHours()).padStart(2, "0")}:${String(fallbackEndDate.getMinutes()).padStart(2, "0")}`;
+              const start_time = startTimeStr && /^([01]\d|2[0-3]):[0-5]\d$/.test(startTimeStr) ? startTimeStr : fallbackStart;
+              let end_time = endTimeStr && /^([01]\d|2[0-3]):[0-5]\d$/.test(endTimeStr) ? endTimeStr : fallbackEnd;
+              if (end_time <= start_time) {
+                const [h, m] = start_time.split(":").map(Number);
+                const d = new Date(Date.UTC(1970, 0, 1, h, m));
+                d.setUTCHours(d.getUTCHours() + 1);
+                end_time = `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+              }
+              const toTimeDate = (hhmm) => {
+                const [h, m] = hhmm.split(":").map(Number);
+                return new Date(Date.UTC(1970, 0, 1, h, m, 0, 0));
+              };
               await tx.tripActivity.create({
                 data: {
                   tripId,
                   placeName: winningOption.label,
                   kind: "activity",
-                  activityDate: trip.status === "fixed" ? trip.startDate : null,
+                  activityDate,
+                  dayNumber,
+                  startTime: toTimeDate(start_time),
+                  endTime: toTimeDate(end_time),
+                  mapsLink: winningOption.mapsLink ?? null,
+                  refLinks: winningOption.refLinks ?? [],
                   sortOrder: activityCount
                 }
               });
@@ -4318,7 +4442,7 @@ var require_activity_service = __commonJS({
           where: { id: activityId },
           data: {
             placeName: dto.place_name !== void 0 ? dto.place_name : void 0,
-            activityDate: dto.activity_date ? new Date(dto.activity_date) : void 0,
+            activityDate: dto.activity_date !== void 0 ? dto.activity_date ? new Date(dto.activity_date) : null : void 0,
             dayNumber,
             startTime: dto.start_time !== void 0 ? this.parseTimeToDate(dto.start_time) : void 0,
             endTime: dto.end_time !== void 0 ? this.parseTimeToDate(dto.end_time) : void 0,
@@ -4326,7 +4450,7 @@ var require_activity_service = __commonJS({
             description: dto.description !== void 0 ? dto.description : void 0,
             locationLabel: dto.location_label !== void 0 ? dto.location_label : void 0,
             mapsLink: dto.maps_link !== void 0 ? dto.maps_link : void 0,
-            refLinks: dto.ref_links ?? void 0,
+            refLinks: dto.ref_links !== void 0 ? dto.ref_links : void 0,
             coverSource: dto.cover_source !== void 0 ? dto.cover_source : void 0,
             coverIcon: dto.cover_icon !== void 0 ? dto.cover_icon : void 0,
             coverDocumentId: dto.cover_document_id !== void 0 ? dto.cover_document_id : void 0,
@@ -4436,7 +4560,7 @@ var require_activity_service = __commonJS({
         const buffer = Buffer.from(await res.arrayBuffer());
         const contentType = res.headers.get("content-type") ?? "image/jpeg";
         const { storageKey, storageUrl } = await this.r2.putObject(tripId, contentType, buffer);
-        await this.prisma.tripDocument.create({
+        const document = await this.prisma.tripDocument.create({
           data: {
             tripId,
             uploadedBy: uploaderId,
@@ -4446,6 +4570,21 @@ var require_activity_service = __commonJS({
             fromChat: false
           }
         });
+        const trip = await this.prisma.trip.findFirst({
+          where: { id: tripId },
+          select: { coverDocumentId: true }
+        });
+        if (!trip?.coverDocumentId) {
+          const nonChatCount = await this.prisma.tripDocument.count({
+            where: { tripId, fromChat: false }
+          });
+          if (nonChatCount <= 1) {
+            await this.prisma.trip.update({
+              where: { id: tripId },
+              data: { coverDocumentId: document.id }
+            });
+          }
+        }
       }
       async resolveCoverThumbnailUrl(activity) {
         if (activity.thumbnailUrl)
@@ -4717,8 +4856,17 @@ var require_chat_service = __commonJS({
         }) : await this.prisma.tripMessage.count({
           where: { tripId, deletedAt: null, senderId: { not: userId } }
         });
+        const mediaKeys = results.filter((m) => !m.deletedAt && m.mediaUrl && (m.messageKind === "photo" || m.messageKind === "video")).map((m) => this.r2.extractStorageKey(m.mediaUrl));
+        const presignedMap = await this.r2.presignDownloads(mediaKeys);
         return {
-          data: await Promise.all(results.map((m) => this.toMessageResponse(m))),
+          data: await Promise.all(results.map((m) => {
+            if (m.deletedAt || !m.mediaUrl)
+              return this.toMessageResponse(m, null);
+            if (m.messageKind !== "photo" && m.messageKind !== "video")
+              return this.toMessageResponse(m, m.mediaUrl);
+            const key = this.r2.extractStorageKey(m.mediaUrl);
+            return this.toMessageResponse(m, presignedMap.get(key) ?? m.mediaUrl);
+          })),
           next_cursor: hasMore ? results[results.length - 1]?.createdAt.toISOString() ?? null : null,
           unread_count: unreadCount
         };
@@ -4834,8 +4982,8 @@ var require_chat_service = __commonJS({
           update: { lastReadAt: /* @__PURE__ */ new Date() }
         });
       }
-      async toMessageResponse(message) {
-        const mediaUrl = await this.resolveMediaUrl(message);
+      async toMessageResponse(message, mediaUrlOverride) {
+        const mediaUrl = mediaUrlOverride !== void 0 ? mediaUrlOverride : await this.resolveMediaUrl(message);
         return message_serializer_1.MessageSerializer.toList(message, mediaUrl, this.r2);
       }
       toIntervalString(totalSeconds) {
@@ -5078,7 +5226,20 @@ var require_media_service = __commonJS({
           where: { id: tripId },
           select: { coverDocumentId: true }
         });
-        return this.toDocumentResponse(document, trip?.coverDocumentId ?? null);
+        let coverDocumentId = trip?.coverDocumentId ?? null;
+        if (!coverDocumentId) {
+          const nonChatCount = await this.prisma.tripDocument.count({
+            where: { tripId, fromChat: false }
+          });
+          if (nonChatCount <= 1) {
+            await this.prisma.trip.update({
+              where: { id: tripId },
+              data: { coverDocumentId: document.id }
+            });
+            coverDocumentId = document.id;
+          }
+        }
+        return this.toDocumentResponse(document, coverDocumentId);
       }
       async deleteDocument(tripId, documentId, userId) {
         const trip = await this.prisma.trip.findFirst({
@@ -6126,8 +6287,8 @@ var require_wishlist_service = __commonJS({
           where: { id: wishlistId },
           data: {
             placeName: dto.place_name,
-            startTime: dto.start_time !== void 0 ? (0, date_helpers_1.toTimeDate)(dto.start_time) : void 0,
-            endTime: dto.end_time !== void 0 ? (0, date_helpers_1.toTimeDate)(dto.end_time) : void 0,
+            startTime: dto.start_time !== void 0 ? dto.start_time ? (0, date_helpers_1.toTimeDate)(dto.start_time) : null : void 0,
+            endTime: dto.end_time !== void 0 ? dto.end_time ? (0, date_helpers_1.toTimeDate)(dto.end_time) : null : void 0,
             locationLabel: dto.location_label,
             mapsLink: dto.maps_link,
             refLinks: dto.ref_links,
@@ -6138,7 +6299,7 @@ var require_wishlist_service = __commonJS({
           }
         });
         const mapsLinkChanged = dto.maps_link !== void 0 && dto.maps_link !== existing.mapsLink;
-        const needsResolve = !dto.thumbnail_url && (mapsLinkChanged || this.isFallbackThumbnail(existing.thumbnailUrl));
+        const needsResolve = dto.maps_link !== null && !dto.thumbnail_url && (mapsLinkChanged || this.isFallbackThumbnail(existing.thumbnailUrl));
         let thumbnailUrl = wishlist.thumbnailUrl;
         if (needsResolve) {
           const resolved = await this.resolveThumbnailNow(wishlistId, dto.maps_link ?? existing.mapsLink);
@@ -6321,10 +6482,13 @@ var require_wishlist_service = __commonJS({
           });
           documentId = document.id;
         }
-        await this.prisma.trip.update({
-          where: { id: tripId },
-          data: { coverDocumentId: documentId }
-        });
+        const trip = await this.prisma.trip.findFirst({ where: { id: tripId }, select: { coverDocumentId: true } });
+        if (!trip?.coverDocumentId) {
+          await this.prisma.trip.update({
+            where: { id: tripId },
+            data: { coverDocumentId: documentId }
+          });
+        }
         await this.prisma.tripActivity.updateMany({
           where: { tripId, dayNumber: 1 },
           data: {

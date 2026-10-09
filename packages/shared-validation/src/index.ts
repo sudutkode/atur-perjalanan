@@ -7,6 +7,20 @@ const TIME_HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export const PRIORITY_LEVELS = ['high', 'medium', 'low'] as const;
 
+/**
+ * Update-field helper. Encodes "clear this value" explicitly:
+ * - omitted       → leave unchanged
+ * - `null`        → clear (write NULL)
+ * - `''`/blank    → clear (normalised to `null`)
+ * - a real value  → set
+ */
+export function clearable<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+    schema.nullable().optional(),
+  );
+}
+
 // ── Auth ─────────────────────────────────────────────────────
 
 export const GoogleAuthSchema = z.object({
@@ -42,9 +56,9 @@ export const SearchUsersSchema = z.object({
 
 export const UpdateUserSchema = z.object({
   name: z.string().trim().min(1).max(255).optional(),
-  bio: z.string().max(150).optional(),
-  website_url: z.string().url().max(255).optional(),
-  location_label: z.string().max(100).optional(),
+  bio: clearable(z.string().max(150)),
+  website_url: clearable(z.string().url().max(255)),
+  location_label: clearable(z.string().max(100)),
   is_public: z
     .union([z.boolean(), z.literal('true'), z.literal('false')])
     .transform((v) => v === true || v === 'true')
@@ -85,11 +99,11 @@ export type CreateTripInput = z.infer<typeof CreateTripSchema>;
 export const UpdateTripSchema = z.object({
   name: z.string().max(255).optional(),
   tags: z.array(z.string()).optional(),
-  start_date: z.string().datetime().optional(),
-  end_date: z.string().datetime().optional(),
+  start_date: z.string().datetime().nullable().optional(),
+  end_date: z.string().datetime().nullable().optional(),
   is_all_day: z.boolean().optional(),
-  start_time: z.string().regex(TIME_HHMM, 'start_time must be in HH:MM format').optional(),
-  end_time: z.string().regex(TIME_HHMM, 'end_time must be in HH:MM format').optional(),
+  start_time: clearable(z.string().regex(TIME_HHMM, 'start_time must be in HH:MM format')),
+  end_time: clearable(z.string().regex(TIME_HHMM, 'end_time must be in HH:MM format')),
   is_public: z.boolean().optional(),
 });
 export type UpdateTripInput = z.infer<typeof UpdateTripSchema>;
@@ -121,7 +135,23 @@ export const CreateActivitySchema = z.object({
 });
 export type CreateActivityInput = z.infer<typeof CreateActivitySchema>;
 
-export const UpdateActivitySchema = CreateActivitySchema.partial();
+export const UpdateActivitySchema = z.object({
+  place_name: z.string().max(255).optional(),
+  activity_date: z.string().datetime().nullable().optional(),
+  day_number: z.number().int().min(1).optional(),
+  start_time: z.string().regex(TIME_HHMM).optional(),
+  end_time: z.string().regex(TIME_HHMM).optional(),
+  kind: ActivityKindEnum.optional(),
+  description: clearable(z.string()),
+  location_label: clearable(z.string()),
+  maps_link: clearable(z.string().url()),
+  ref_links: z.array(RefLinkSchema).optional(),
+  cover_source: CoverSourceEnum.optional(),
+  cover_icon: clearable(z.string()),
+  cover_document_id: z.string().uuid().nullable().optional(),
+  thumbnail_url: clearable(z.string()),
+  sort_order: z.number().optional(),
+});
 export type UpdateActivityInput = z.infer<typeof UpdateActivitySchema>;
 
 export const CreateMessageSchema = z.object({
@@ -174,7 +204,7 @@ const PollOptionSchema = z.union([
     candidate_id: z.string().optional(),
     start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'start_date must be a date in YYYY-MM-DD format').optional(),
     end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'end_date must be a date in YYYY-MM-DD format').optional(),
-    maps_link: z.string().url('maps_link must be a valid URL').optional(),
+    maps_link: z.string().url('maps_link must be a valid URL').nullable().optional(),
     ref_links: z.array(PollRefLinkSchema).optional(),
     start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'start_time must be in HH:MM format').optional(),
     end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'end_time must be in HH:MM format').optional(),
@@ -191,6 +221,7 @@ export type CreatePollInput = z.infer<typeof CreatePollSchema>;
 
 export const UpdatePollSchema = CreatePollSchema.partial().extend({
   options: z.array(PollOptionSchema).min(1).max(10).optional(),
+  deadline: z.string().datetime().nullable().optional(),
 });
 export type UpdatePollInput = z.infer<typeof UpdatePollSchema>;
 
@@ -245,7 +276,25 @@ export const CreateWishlistSchema = z.object({
 });
 export type CreateWishlistInput = z.infer<typeof CreateWishlistSchema>;
 
-export const UpdateWishlistSchema = CreateWishlistSchema.partial();
+export const UpdateWishlistSchema = z.object({
+  place_name: z.string().max(255).optional(),
+  start_time: clearable(z.string().regex(TIME_HHMM, 'start_time must be in HH:MM format')),
+  end_time: clearable(z.string().regex(TIME_HHMM, 'end_time must be in HH:MM format')),
+  location_label: clearable(z.string()),
+  maps_link: clearable(z.string().url('maps_link must be a valid URL')),
+  ref_links: z
+    .array(
+      z.object({
+        url: z.string().url('ref link url must be a valid URL'),
+        label: z.string().optional(),
+      }),
+    )
+    .optional(),
+  notes: clearable(z.string()),
+  tags: z.array(z.string()).optional(),
+  priority_level: z.enum(PRIORITY_LEVELS).optional(),
+  thumbnail_url: clearable(z.string()),
+});
 export type UpdateWishlistInput = z.infer<typeof UpdateWishlistSchema>;
 
 export const ConvertToTripSchema = z.object({

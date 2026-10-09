@@ -332,6 +332,51 @@ describe('ActivityService', () => {
         },
       ]);
     });
+
+    it('clears maps_link, description, location_label and ref_links when sent as null/[]', async () => {
+      const scheduleSpy = jest.spyOn(service as any, 'scheduleThumbnailResolve');
+
+      prisma.tripActivity.update.mockResolvedValue({
+        id: ACTIVITY,
+        tripId: TRIP,
+        placeName: 'Beach',
+        activityDate: new Date('2027-06-20'),
+        startTime: new Date('1970-01-01T09:00:00Z'),
+        endTime: new Date('1970-01-01T10:00:00Z'),
+        kind: 'activity',
+        description: null,
+        locationLabel: null,
+        mapsLink: null,
+        refLinks: [],
+        coverSource: 'none',
+        coverIcon: null,
+        coverDocumentId: null,
+        thumbnailUrl: null,
+        sortOrder: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        coverDocument: null,
+      });
+
+      await service.updateActivity(TRIP, ACTIVITY, USER, {
+        maps_link: null,
+        description: null,
+        location_label: null,
+        ref_links: [],
+      });
+
+      expect(prisma.tripActivity.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            mapsLink: null,
+            description: null,
+            locationLabel: null,
+            refLinks: [],
+          }),
+        }),
+      );
+      expect(scheduleSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('deleteActivity', () => {

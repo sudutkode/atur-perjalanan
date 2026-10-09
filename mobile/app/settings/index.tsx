@@ -105,8 +105,8 @@ export default function SettingsScreen() {
       }
       await updateProfile.mutateAsync({
         name: name.trim(),
-        bio: bio.trim() || undefined,
-        website_url: website.trim() || undefined,
+        bio: bio.trim() || null,
+        website_url: website.trim() || null,
       });
       setAvatarDraft(null);
       setView('main');

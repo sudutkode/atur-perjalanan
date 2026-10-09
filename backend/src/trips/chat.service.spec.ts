@@ -43,6 +43,10 @@ describe('ChatService', () => {
           provide: R2Service,
           useValue: {
             presignDownload: jest.fn((key: string) => `https://r2.example.com/get/${key}`),
+            presignDownloads: jest.fn(
+              async (keys: string[]) =>
+                new Map(keys.map((key) => [key, `https://r2.example.com/get/${key}`])),
+            ),
             extractStorageKey: jest.fn((url: string) =>
               url.replace('https://cdn.example.com/', ''),
             ),

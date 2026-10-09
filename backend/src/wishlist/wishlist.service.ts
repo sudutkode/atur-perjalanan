@@ -110,8 +110,18 @@ export class WishlistService {
       where: { id: wishlistId },
       data: {
         placeName: dto.place_name,
-        startTime: dto.start_time !== undefined ? toTimeDate(dto.start_time) : undefined,
-        endTime: dto.end_time !== undefined ? toTimeDate(dto.end_time) : undefined,
+        startTime:
+          dto.start_time !== undefined
+            ? dto.start_time
+              ? toTimeDate(dto.start_time)
+              : null
+            : undefined,
+        endTime:
+          dto.end_time !== undefined
+            ? dto.end_time
+              ? toTimeDate(dto.end_time)
+              : null
+            : undefined,
         locationLabel: dto.location_label,
         mapsLink: dto.maps_link,
         refLinks: dto.ref_links,
@@ -125,6 +135,7 @@ export class WishlistService {
     const mapsLinkChanged =
       dto.maps_link !== undefined && dto.maps_link !== existing.mapsLink;
     const needsResolve =
+      dto.maps_link !== null &&
       !dto.thumbnail_url &&
       (mapsLinkChanged || this.isFallbackThumbnail(existing.thumbnailUrl));
 

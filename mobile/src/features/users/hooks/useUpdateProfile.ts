@@ -5,9 +5,9 @@ import type { UserProfile } from '@atur-perjalanan/shared-types';
 
 interface UpdateProfilePayload {
   name?: string;
-  bio?: string;
-  website_url?: string;
-  location_label?: string;
+  bio?: string | null;
+  website_url?: string | null;
+  location_label?: string | null;
   is_public?: boolean;
 }
 

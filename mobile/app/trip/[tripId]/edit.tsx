@@ -141,12 +141,12 @@ export default function EditTripScreen() {
     try {
       await updateTrip.mutateAsync({
         name: name.trim(),
-        tags: tags.length > 0 ? tags : undefined,
+        tags,
         start_date: dateRange.startDate + 'T00:00:00.000Z',
         end_date: dateRange.endDate + 'T00:00:00.000Z',
         is_all_day: allDay,
-        start_time: allDay ? undefined : startTime,
-        end_time: allDay ? undefined : endTime,
+        start_time: allDay ? null : startTime,
+        end_time: allDay ? null : endTime,
       });
       goBack();
     } catch {

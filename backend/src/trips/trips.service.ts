@@ -352,13 +352,31 @@ export class TripsService {
       data: {
         name: dto.name,
         tags: dto.tags ?? undefined,
-        startDate: dto.start_date ? new Date(dto.start_date) : undefined,
-        endDate: dto.end_date ? new Date(dto.end_date) : undefined,
+        startDate:
+          dto.start_date !== undefined
+            ? dto.start_date
+              ? new Date(dto.start_date)
+              : null
+            : undefined,
+        endDate:
+          dto.end_date !== undefined
+            ? dto.end_date
+              ? new Date(dto.end_date)
+              : null
+            : undefined,
         isAllDay: dto.is_all_day,
-        startTime: dto.start_time
-          ? new Date(`2000-01-01T${dto.start_time}:00Z`)
-          : undefined,
-        endTime: dto.end_time ? new Date(`2000-01-01T${dto.end_time}:00Z`) : undefined,
+        startTime:
+          dto.start_time !== undefined
+            ? dto.start_time
+              ? new Date(`2000-01-01T${dto.start_time}:00Z`)
+              : null
+            : undefined,
+        endTime:
+          dto.end_time !== undefined
+            ? dto.end_time
+              ? new Date(`2000-01-01T${dto.end_time}:00Z`)
+              : null
+            : undefined,
         isPublic: dto.is_public,
       },
     });

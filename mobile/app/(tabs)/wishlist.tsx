@@ -299,16 +299,20 @@ function WishlistFormSheet({ visible, onClose, editItem }: {
       const filledRefLinks = refLinks
         .map((r) => ({ url: r.url.trim(), label: r.label?.trim() }))
         .filter((r) => r.url.length > 0);
+      const isEdit = !!editItem;
+      // On edit, a cleared field is sent as explicit `null` so the API wipes it
+      // (omitting the key means "leave unchanged"). On create, omit it.
+      const emptyAs = (value: string) => value || (isEdit ? null : undefined);
       const payload = {
         place_name: placeName.trim(),
-        location_label: location.trim() || undefined,
+        location_label: emptyAs(location.trim()),
         priority_level: priority,
-        start_time: startTime || undefined,
-        end_time: endTime || undefined,
-        notes: notes.trim() || undefined,
-        maps_link: mapsLink.trim() || undefined,
-        ref_links: filledRefLinks.length > 0 ? filledRefLinks : undefined,
-        tags: tags.length > 0 ? tags : undefined,
+        start_time: emptyAs(startTime),
+        end_time: emptyAs(endTime),
+        notes: emptyAs(notes.trim()),
+        maps_link: emptyAs(mapsLink.trim()),
+        ref_links: filledRefLinks,
+        tags,
       };
       if (editItem) {
         await (mutation as ReturnType<typeof useUpdateWishlist>).mutateAsync(payload);

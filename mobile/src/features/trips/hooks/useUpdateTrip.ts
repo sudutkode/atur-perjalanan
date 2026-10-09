@@ -8,8 +8,8 @@ interface UpdateTripPayload {
   start_date?: string;
   end_date?: string;
   is_all_day?: boolean;
-  start_time?: string;
-  end_time?: string;
+  start_time?: string | null;
+  end_time?: string | null;
   is_public?: boolean;
 }
 

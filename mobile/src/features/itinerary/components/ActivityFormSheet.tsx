@@ -133,16 +133,20 @@ export function ActivityFormSheet({
           return label ? { url, label } : { url };
         })
         .filter((r) => r.url.length > 0);
+      const isEdit = !!editActivity;
+      // On edit, a cleared field is sent as explicit `null` so the API wipes it
+      // (omitting the key means "leave unchanged"). On create, omit it.
+      const emptyAs = (value: string) => value || (isEdit ? null : undefined);
       const payload = {
         place_name: placeName.trim(),
         day_number: dayNumber,
         start_time: startTime,
         end_time: endTime,
         kind: 'activity' as const,
-        description: description.trim() || undefined,
-        location_label: locationLabel.trim() || undefined,
-        maps_link: mapsLink.trim() || undefined,
-        ref_links: filledRefLinks.length > 0 ? filledRefLinks : undefined,
+        description: emptyAs(description.trim()),
+        location_label: emptyAs(locationLabel.trim()),
+        maps_link: emptyAs(mapsLink.trim()),
+        ref_links: filledRefLinks,
         cover_source: coverSource,
         ...(coverIcon ? { cover_icon: coverIcon } : {}),
         ...(coverSource === 'icon' || coverSource === 'none'

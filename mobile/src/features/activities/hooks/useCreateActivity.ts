@@ -8,9 +8,9 @@ interface CreateActivityPayload {
   start_time: string;
   end_time: string;
   kind?: string;
-  description?: string;
-  location_label?: string;
-  maps_link?: string;
+  description?: string | null;
+  location_label?: string | null;
+  maps_link?: string | null;
   ref_links?: { url: string; label?: string }[];
   cover_source?: string;
   cover_icon?: string;
