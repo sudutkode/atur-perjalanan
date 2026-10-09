@@ -129,47 +129,52 @@ export class ChatService {
       }
     }
 
-    const message = await this.prisma.$transaction(async (tx) => {
-      const storageKey =
-        dto.message_kind === 'photo' || dto.message_kind === 'video'
-          ? this.r2.extractStorageKey(dto.media_url!)
-          : null;
+    const message = await this.prisma.$transaction(
+      async (tx) => {
+        const storageKey =
+          dto.message_kind === 'photo' || dto.message_kind === 'video'
+            ? this.r2.extractStorageKey(dto.media_url!)
+            : null;
 
-      const created = await tx.tripMessage.create({
-        data: {
-          tripId,
-          senderId: userId,
-          messageKind: dto.message_kind,
-          messageText: dto.message_text ?? null,
-          mediaUrl: storageKey ? this.r2.resolvePublicUrl(storageKey) : null,
-          mediaDuration: dto.media_duration_seconds
-            ? this.toIntervalString(dto.media_duration_seconds)
-            : null,
-          replyToId: dto.reply_to_id ?? null,
-        },
-        include: MESSAGE_INCLUDE,
-      });
-
-      if (storageKey) {
-        const mediaDuration = dto.media_duration_seconds
-          ? this.toIntervalString(dto.media_duration_seconds)
-          : null;
-        await tx.tripDocument.create({
+        const created = await tx.tripMessage.create({
           data: {
             tripId,
-            uploadedBy: userId,
-            mediaType: dto.message_kind as MediaType,
-            storageKey,
-            storageUrl: this.r2.resolvePublicUrl(storageKey),
-            mediaDuration,
-            fromChat: true,
-            messageId: created.id,
+            senderId: userId,
+            messageKind: dto.message_kind,
+            messageText: dto.message_text ?? null,
+            mediaUrl: storageKey ? this.r2.resolvePublicUrl(storageKey) : null,
+            mediaDuration: dto.media_duration_seconds
+              ? this.toIntervalString(dto.media_duration_seconds)
+              : null,
+            replyToId: dto.reply_to_id ?? null,
           },
+          include: MESSAGE_INCLUDE,
         });
-      }
 
-      return created;
-    });
+        if (storageKey) {
+          const mediaDuration = dto.media_duration_seconds
+            ? this.toIntervalString(dto.media_duration_seconds)
+            : null;
+          await tx.tripDocument.create({
+            data: {
+              tripId,
+              uploadedBy: userId,
+              mediaType: dto.message_kind as MediaType,
+              storageKey,
+              storageUrl: this.r2.resolvePublicUrl(storageKey),
+              mediaDuration,
+              fromChat: true,
+              messageId: created.id,
+            },
+          });
+        }
+
+        return created;
+      },
+      // Serverless functions can sit far from the DB region; give the
+      // transaction headroom so a slow round-trip doesn't abort it.
+      { maxWait: 10000, timeout: 20000 },
+    );
 
     return this.toMessageResponse(message);
   }
@@ -227,7 +232,7 @@ export class ChatService {
       await tx.tripDocument.deleteMany({
         where: { messageId },
       });
-    });
+    }, { maxWait: 10000, timeout: 20000 });
   }
 
   /**

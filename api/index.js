@@ -4931,7 +4931,7 @@ var require_chat_service = __commonJS({
             });
           }
           return created;
-        });
+        }, { maxWait: 1e4, timeout: 2e4 });
         return this.toMessageResponse(message);
       }
       async deleteMessage(tripId, messageId, userId) {
@@ -4974,7 +4974,7 @@ var require_chat_service = __commonJS({
           await tx.tripDocument.deleteMany({
             where: { messageId }
           });
-        });
+        }, { maxWait: 1e4, timeout: 2e4 });
       }
       async markRead(tripId, userId) {
         await this.assertParticipant(tripId, userId);

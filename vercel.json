@@ -4,6 +4,7 @@
   "buildCommand": "pnpm --filter backend run build:vercel",
   "outputDirectory": "backend/dist",
   "framework": null,
+  "regions": ["sin1"],
   "functions": {
     "api/index.js": {
       "maxDuration": 60
