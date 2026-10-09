@@ -149,6 +149,19 @@ Karena backend, development, dan local memakai **satu Supabase yang sama**, `pri
 - **Setiap ada perubahan schema** (`backend/prisma/schema.prisma`): terapkan perubahannya langsung di Supabase (SQL editor dashboard), atau jalankan `npx prisma db push`/`migrate deploy` dari lokal dengan `DATABASE_URL` yang sama — lalu `npx prisma generate` supaya client sinkron.
 - **Urutan saat deploy update**: **(1) terapkan perubahan skema di Supabase → (2) push/deploy backend**. Kalau backend deploy duluan, runtime bisa error karena kolom/table belum ada.
 
+### 1.4.1 Realtime (chat & notifikasi)
+
+Supabase Realtime **tidak otomatis** menyiarkan tabel yang dibuat lewat Prisma — tabel harus ditambahkan ke publication `supabase_realtime` **dan** role `authenticated` butuh `SELECT` (Realtime memeriksa RLS/grant per event). Tanpa keduanya, subscription `SUBSCRIBED` tapi **tidak ada event** yang masuk. Jalankan sekali di Supabase SQL editor:
+
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE public.trip_messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+GRANT SELECT ON public.trip_messages TO authenticated;
+GRANT SELECT ON public.notifications TO authenticated;
+```
+
+> Backend (Prisma) memakai role `postgres` (owner) sehingga grant ini tidak memengaruhi REST API. `auth.uid()` di WebSocket berasal dari `realtime_token` yang di-mint backend (`RealtimeTokenService`, TTL = 24 jam, sama dengan app JWT).
+
 ## 1.5 Cron Reminders (pengganti @nestjs/schedule)
 
 Vercel serverless **tidak punya scheduler in-process**. Backend kini mengekspos:

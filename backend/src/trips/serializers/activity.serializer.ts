@@ -49,7 +49,7 @@ export class ActivitySerializer {
       cover_icon: activity.coverIcon,
       cover_document_id: activity.coverDocumentId,
       thumbnail_url:
-        activity.thumbnailUrl || coverThumbnailUrl || coverDocument?.storageUrl || null,
+        coverThumbnailUrl ?? activity.thumbnailUrl ?? coverDocument?.storageUrl ?? null,
       sort_order: activity.sortOrder,
       created_at: activity.createdAt.toISOString(),
       updated_at: activity.updatedAt.toISOString(),
@@ -77,7 +77,7 @@ export class ActivitySerializer {
       cover_icon: activity.coverIcon,
       cover_document_id: activity.coverDocumentId,
       thumbnail_url:
-        activity.thumbnailUrl || coverThumbnailUrl || coverDocument?.storageUrl || null,
+        coverThumbnailUrl ?? activity.thumbnailUrl ?? coverDocument?.storageUrl ?? null,
       sort_order: activity.sortOrder,
       created_at: activity.createdAt.toISOString(),
       updated_at: activity.updatedAt.toISOString(),

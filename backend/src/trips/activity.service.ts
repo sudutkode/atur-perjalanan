@@ -49,21 +49,21 @@ export class ActivityService {
     });
 
     const coverKeys = activities
-      .filter((a) => !a.thumbnailUrl && a.coverDocument?.storageKey)
+      .filter((a) => a.coverDocument?.storageKey)
       .map((a) => a.coverDocument!.storageKey);
     const signedCoverUrls = await this.r2.presignDownloads(coverKeys);
 
+    // A cover document is authoritative: always hand the client a freshly
+    // presigned URL for it. The stored `thumbnailUrl` may be an older presigned
+    // URL (which expires) and is only used when there is no cover document
+    // (e.g. an external Google Maps image).
     return {
-      data: activities.map((a) =>
-        ActivitySerializer.toList(
-          a,
-          a.coverDocument,
-          a.thumbnailUrl ||
-            (a.coverDocument?.storageKey
-              ? (signedCoverUrls.get(a.coverDocument.storageKey) ?? null)
-              : null),
-        ),
-      ),
+      data: activities.map((a) => {
+        const coverUrl = a.coverDocument?.storageKey
+          ? (signedCoverUrls.get(a.coverDocument.storageKey) ?? a.thumbnailUrl)
+          : a.thumbnailUrl;
+        return ActivitySerializer.toList(a, a.coverDocument, coverUrl);
+      }),
       next_cursor: null,
     };
   }
@@ -493,9 +493,13 @@ export class ActivityService {
     thumbnailUrl: string | null;
     coverDocument?: { storageKey: string } | null;
   }): Promise<string | null> {
-    if (activity.thumbnailUrl) return activity.thumbnailUrl;
-    if (!activity.coverDocument?.storageKey) return null;
-    return this.r2.presignDownload(activity.coverDocument.storageKey);
+    // Prefer the cover document (freshly presigned) over the stored
+    // `thumbnailUrl`, which may be an expired presigned URL from an earlier
+    // save. Fall back to `thumbnailUrl` for non-media covers (e.g. maps).
+    if (activity.coverDocument?.storageKey) {
+      return this.r2.presignDownload(activity.coverDocument.storageKey);
+    }
+    return activity.thumbnailUrl;
   }
 
   private parseTimeToDate(timeStr: string): Date {

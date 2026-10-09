@@ -2,12 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 
-const REALTIME_TOKEN_TTL_SECONDS = 60 * 60; // 1 hour
+// Matches the app JWT lifetime (`jwt.expiresIn` = 24h). There is no refresh
+// endpoint, so a shorter realtime token would silently kill the WebSocket's
+// auth mid-session while the REST session stays valid.
+const REALTIME_TOKEN_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 
 /**
- * Mints a short-lived, Supabase-compatible JWT so the mobile client can open
- * a Supabase Realtime WebSocket whose `auth.uid()` resolves to the app's own
- * user id (ARCHITECTURE §6). This token is NEVER used against NestJS REST
+ * Mints a Supabase-compatible JWT so the mobile client can open a Supabase
+ * Realtime WebSocket whose `auth.uid()` resolves to the app's own user id
+ * (ARCHITECTURE §6). This token is NEVER used against NestJS REST
  * endpoints — only to authenticate the Supabase Realtime connection.
  */
 @Injectable()

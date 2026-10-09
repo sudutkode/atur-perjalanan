@@ -287,7 +287,7 @@ var require_realtime_token_service = __commonJS({
     var common_1 = require("@nestjs/common");
     var config_1 = require("@nestjs/config");
     var jwt = __importStar(require("jsonwebtoken"));
-    var REALTIME_TOKEN_TTL_SECONDS = 60 * 60;
+    var REALTIME_TOKEN_TTL_SECONDS = 24 * 60 * 60;
     var RealtimeTokenService = class RealtimeTokenService {
       constructor(config) {
         this.config = config;
@@ -4222,7 +4222,7 @@ var require_activity_serializer = __commonJS({
           cover_source: activity.coverSource,
           cover_icon: activity.coverIcon,
           cover_document_id: activity.coverDocumentId,
-          thumbnail_url: activity.thumbnailUrl || coverThumbnailUrl || coverDocument?.storageUrl || null,
+          thumbnail_url: coverThumbnailUrl ?? activity.thumbnailUrl ?? coverDocument?.storageUrl ?? null,
           sort_order: activity.sortOrder,
           created_at: activity.createdAt.toISOString(),
           updated_at: activity.updatedAt.toISOString()
@@ -4244,7 +4244,7 @@ var require_activity_serializer = __commonJS({
           cover_source: activity.coverSource,
           cover_icon: activity.coverIcon,
           cover_document_id: activity.coverDocumentId,
-          thumbnail_url: activity.thumbnailUrl || coverThumbnailUrl || coverDocument?.storageUrl || null,
+          thumbnail_url: coverThumbnailUrl ?? activity.thumbnailUrl ?? coverDocument?.storageUrl ?? null,
           sort_order: activity.sortOrder,
           created_at: activity.createdAt.toISOString(),
           updated_at: activity.updatedAt.toISOString()
@@ -4302,10 +4302,13 @@ var require_activity_service = __commonJS({
           include: { coverDocument: { select: { id: true, storageKey: true, storageUrl: true } } },
           orderBy: [{ dayNumber: "asc" }, { startTime: "asc" }]
         });
-        const coverKeys = activities.filter((a) => !a.thumbnailUrl && a.coverDocument?.storageKey).map((a) => a.coverDocument.storageKey);
+        const coverKeys = activities.filter((a) => a.coverDocument?.storageKey).map((a) => a.coverDocument.storageKey);
         const signedCoverUrls = await this.r2.presignDownloads(coverKeys);
         return {
-          data: activities.map((a) => activity_serializer_1.ActivitySerializer.toList(a, a.coverDocument, a.thumbnailUrl || (a.coverDocument?.storageKey ? signedCoverUrls.get(a.coverDocument.storageKey) ?? null : null))),
+          data: activities.map((a) => {
+            const coverUrl = a.coverDocument?.storageKey ? signedCoverUrls.get(a.coverDocument.storageKey) ?? a.thumbnailUrl : a.thumbnailUrl;
+            return activity_serializer_1.ActivitySerializer.toList(a, a.coverDocument, coverUrl);
+          }),
           next_cursor: null
         };
       }
@@ -4587,11 +4590,10 @@ var require_activity_service = __commonJS({
         }
       }
       async resolveCoverThumbnailUrl(activity) {
-        if (activity.thumbnailUrl)
-          return activity.thumbnailUrl;
-        if (!activity.coverDocument?.storageKey)
-          return null;
-        return this.r2.presignDownload(activity.coverDocument.storageKey);
+        if (activity.coverDocument?.storageKey) {
+          return this.r2.presignDownload(activity.coverDocument.storageKey);
+        }
+        return activity.thumbnailUrl;
       }
       parseTimeToDate(timeStr) {
         const [h, m] = timeStr.split(":").map(Number);

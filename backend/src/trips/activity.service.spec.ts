@@ -91,6 +91,42 @@ describe('ActivityService', () => {
       expect(result.data[0].place_name).toBe('Beach');
     });
 
+    it('presigns the cover document fresh instead of a stored (expiring) thumbnail_url', async () => {
+      prisma.trip.findFirst.mockResolvedValue({ id: TRIP });
+      prisma.tripActivity.findMany.mockResolvedValue([
+        {
+          id: ACTIVITY,
+          tripId: TRIP,
+          placeName: 'Beach',
+          activityDate: new Date('2027-06-20'),
+          startTime: new Date('1970-01-01T09:00:00Z'),
+          endTime: new Date('1970-01-01T12:00:00Z'),
+          kind: 'activity',
+          description: null,
+          locationLabel: null,
+          mapsLink: null,
+          refLinks: [],
+          coverSource: 'trip_media',
+          coverIcon: null,
+          coverDocumentId: 'doc-1',
+          // A previously-stored presigned URL — valid only for an hour.
+          thumbnailUrl: 'https://r2.example.com/get/trips/t1/cover.jpg?X-Amz-Expires=1',
+          sortOrder: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          coverDocument: {
+            id: 'doc-1',
+            storageKey: 'trips/t1/cover.jpg',
+            storageUrl: 'https://cdn.example.com/trips/t1/cover.jpg',
+          },
+        },
+      ]);
+
+      const result = await service.listActivities(TRIP, USER);
+
+      expect(result.data[0].thumbnail_url).toBe('https://r2.example.com/get/trips/t1/cover.jpg');
+    });
+
     it('throws NotFound for non-participant', async () => {
       prisma.trip.findFirst.mockResolvedValue(null);
       await expect(service.listActivities(TRIP, USER)).rejects.toThrow(NotFoundException);

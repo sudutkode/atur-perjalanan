@@ -150,11 +150,14 @@ export function ActivityFormSheet({
         cover_source: coverSource,
         ...(coverIcon ? { cover_icon: coverIcon } : {}),
         ...(coverSource === 'icon' || coverSource === 'none'
-          ? { cover_document_id: null, thumbnail_url: null }
+          ? { cover_document_id: null }
           : coverDocumentId
             ? { cover_document_id: coverDocumentId }
             : {}),
-        ...(coverThumb ? { thumbnail_url: coverThumb } : {}),
+        // Only a Maps cover stores an external URL. Media covers are presigned
+        // on read from `cover_document_id`, so persisting a (short-lived)
+        // presigned URL here would go blank after it expires.
+        thumbnail_url: coverSource === 'maps' ? coverThumb : null,
       };
       if (editActivity) {
         await updateActivity.mutateAsync(payload);
